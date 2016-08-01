@@ -8,7 +8,7 @@ module.exports = function(path) {
     var command = 'git ' + command
 
     exec(command, {cwd: path}, function(error, result) {
-      console.log(command + ' : ' + path)
+      // console.log(command + ' : ' + path)
 
       if (error != null) {
         console.log(error)
@@ -69,9 +69,17 @@ module.exports = function(path) {
   }
 
   var clone = function(location, callback) {
-      mkdirp(path, function(err) {
-          gitExecute('clone ' + location + ' .', callback)
-      })
+    mkdirp(path, function(err) {
+        gitExecute('clone ' + location + ' .', callback)
+    })
+  }
+
+  var reset = function(type, callback) {
+    gitExecute('reset --' + type, callback)
+  }
+
+  var clean = function(callback) {
+    gitExecute('clean -f', callback)
   }
 
   return {
@@ -83,6 +91,8 @@ module.exports = function(path) {
       addAll: addAll,
       clone: clone,
       initBare: initBare,
-      config: config
+      config: config,
+      reset: reset,
+      clean: clean
     }
 }
