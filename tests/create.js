@@ -71,7 +71,7 @@ describe('Create a new collection', function() {
     })
   })
 
-  it('Should have commited the files', function(done) {
+  it('Should have committed the files', function(done) {
     var Repository = require('./../src/repository')
     var repo = new Repository(repoPath)
 
