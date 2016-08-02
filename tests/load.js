@@ -19,7 +19,7 @@ describe('Load from a collection', function() {
     fs.mkdirSync(testDirectory)
 
     vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.test = { name: 'hello' }
+      saveCollection.data.first = { name: 'first' }
       saveCollection.data.second = { name: 'second' }
 
       saveCollection.save('commit', function(err) {
@@ -27,7 +27,7 @@ describe('Load from a collection', function() {
         vetus.collection({name: 'test'}, function(collection) {
 
           collection.load(function() {
-            testData = collection.data.test
+            testData = collection.data
 
             done()
           })
@@ -40,13 +40,13 @@ describe('Load from a collection', function() {
     rimraf(testDirectory)
   })
 
-  var repoPath = path.join(testDirectory, 'test')
-  var gitFolderPath = path.join(repoPath, '.git')
-  var testFilePath = path.join(repoPath, 'test.json')
-  var secondFilePath = path.join(repoPath, 'second.json')
+  it('Files loaded', function(done) {
+    assert(testData.first.name && testData.second.name)
+    done()
+  })
 
-  it('File 1 loaded correctly', function(done) {
-    assert(testData.name === 'hello')
+  it('Files contain correct data', function(done) {
+    assert(testData.first.name === 'first' && testData.second.name === 'second')
     done()
   })
 

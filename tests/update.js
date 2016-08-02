@@ -19,13 +19,13 @@ describe('Updating a collection', function() {
     fs.mkdirSync(testDirectory)
 
     vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.test = { name: 'hello' }
+      saveCollection.data.first = { name: 'first' }
       saveCollection.data.second = { name: 'second' }
       saveCollection.save('commit', function(err) {
 
         vetus.collection({name: 'test'}, function(collection) {
           collection.load(function() {
-            collection.data.test = { name: 'updated' }
+            collection.data.first = { name: 'updated' }
             collection.save('commit', function(err) {
 
              vetus.collection({name: 'test'}, function(updatedCollection) {
@@ -45,13 +45,8 @@ describe('Updating a collection', function() {
     rimraf(testDirectory)
   })
 
-  var repoPath = path.join(testDirectory, 'test')
-  var gitFolderPath = path.join(repoPath, '.git')
-  var testFilePath = path.join(repoPath, 'test.json')
-  var secondFilePath = path.join(repoPath, 'second.json')
-
-  it('File updated correctly', function(done) {
-    assert(testData.test.name === 'updated')
+  it('File updated & committed correctly', function(done) {
+    assert(testData.first.name === 'updated')
     done()
   })
 
