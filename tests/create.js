@@ -17,7 +17,7 @@ describe('Create a new collection', function() {
     fs.mkdirSync(testDirectory)
 
     vetus.collection({name: 'test'}, function(collection) {
-      collection.data.test = { name: 'hello' }
+      collection.data.first = { name: 'first' }
       collection.data.second = { name: 'second' }
 
       collection.save('commit', function(err) {
@@ -32,7 +32,7 @@ describe('Create a new collection', function() {
 
   var repoPath = path.join(testDirectory, 'test')
   var gitFolderPath = path.join(repoPath, '.git')
-  var testFilePath = path.join(repoPath, 'test.json')
+  var testFilePath = path.join(repoPath, 'first.json')
   var secondFilePath = path.join(repoPath, 'second.json')
 
   it('Directory should exist', function(done) {
@@ -59,7 +59,7 @@ describe('Create a new collection', function() {
   it('File contains correct data', function(done) {
     fs.readFile(testFilePath, 'utf-8', function(readErr, file) {
       var obj = JSON.parse(file)
-      assert(obj.name === 'hello')
+      assert(obj.name === 'first')
       done()
     })
   })
@@ -71,7 +71,7 @@ describe('Create a new collection', function() {
     })
   })
 
-  it('Should have commited the files', function(done) {
+  it('Should have committed the files', function(done) {
     var Repository = require('./../src/repository')
     var repo = new Repository(repoPath)
 

@@ -5,14 +5,42 @@ var Promise = require('promise')
 // var settings = require('./settings')
 
 var write = Promise.denodeify(fs.writeFile)
+var read = Promise.denodeify(fs.readFile)
 
 module.exports = function(options) {
   var root = options.path
   var data = {}
   var repo = new Repository(root)
 
-  var load = function() {
+  var load = function(callback) {
 
+    fs.readdir(root, function(err, filenames) {
+
+      if (err) {
+        console.log(err)
+        return;
+      }
+
+      var promises = filenames
+        .filter(f => f.endsWith('.json'))
+        .map(f => new Promise(function(done, error) {
+
+          fs.readFile(path.join(root, f), 'utf-8', function(err, file) {
+
+            if (err) {
+              error(err)
+            } else {
+              var obj = JSON.parse(file)
+              data[f.replace('.json', '')] = obj
+              done()
+            }
+          })
+        }))
+
+      Promise.all(promises).then(function() {
+        callback()
+      })
+    })
   }
 
   var save = function(message, callback) {
@@ -29,6 +57,10 @@ module.exports = function(options) {
               repo.addAll(function() {
                 repo.commit(message, callback)
               })
+            })
+          } else {
+            repo.addAll(function() {
+              repo.commit(message, callback)
             })
           }
         })
