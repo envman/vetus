@@ -9,42 +9,33 @@ var read = Promise.denodeify(fs.readFile)
 
 module.exports = function(options) {
   var root = options.path
-  var user = options.user
-  var bareroot = options.path + "\\__bare"
+  var user = options.user || '_default'
+  var bareroot = path.join(root,'_bare')
   var data = {}
   var barerepo = new Repository(bareroot)
-  var userroot
-
-  if (user) {
-    userroot = root + "\\" + user
-  } else {
-    userroot = root + "\\default"
-  }
+  var userroot = path.join(root, user)
 
   var repo = new Repository(userroot)
 
   // Directory setup for empty repository
-
   fs.lstat(bareroot, function(lstatErr, stats) {
     if (!stats){
-      console.log("Creating root directories...")
       fs.mkdirSync(root)
       fs.mkdirSync(bareroot)
-    }
-  })
-
-  // Directory setup for user / default
-
-  fs.lstat(userroot, function(lstatErr, stats) {
-    if (!stats){
-      console.log("Creating user directory...")
       fs.mkdirSync(userroot)
+    } else {
+      // Directory setup for new user / default
+      fs.lstat(userroot, function(lstatErr, stats) {
+        if (!stats){
+          fs.mkdirSync(userroot)
+        }
+      })
     }
   })
 
   var load = function(callback) {
 
-    fs.readdir(bareroot, function(err, filenames) {
+    fs.readdir(userroot, function(err, filenames) {
 
       if (err) {
         console.log(err)
@@ -55,7 +46,7 @@ module.exports = function(options) {
         .filter(f => f.endsWith('.json'))
         .map(f => new Promise(function(done, error) {
 
-          fs.readFile(path.join(bareroot, f), 'utf-8', function(err, file) {
+          fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
 
             if (err) {
               error(err)
@@ -80,14 +71,13 @@ module.exports = function(options) {
       Promise.all(promises).then(function() {
         gitExists(userroot, function(exists) {
           if (!exists) {
-            console.log("The repo does not exist already - initialising & committing")
             repo.init(function() {
               repo.addAll(function() {
                 repo.commit(message, callback)
               })
             })
           } else {
-            console.log("The repo exists - committing")
+            // Code needed here to verify if there are changes to commit
             repo.addAll(function() {
               repo.commit(message, callback)
             })
