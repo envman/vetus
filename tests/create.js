@@ -16,7 +16,7 @@ describe('Create a new collection', function() {
 
     fs.mkdirSync(testDirectory)
 
-    vetus.collection({name: 'test'}, function(collection) {
+    vetus.collection({name: 'test', user: 'name'}, function(collection) {
       collection.data.first = { name: 'first' }
       collection.data.second = { name: 'second' }
 
