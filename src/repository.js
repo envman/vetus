@@ -7,7 +7,7 @@ module.exports = function(path) {
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
 
-    // console.log(command, path)
+    console.log(command, path)
 
     exec(command, {cwd: path}, function(error, result) {
 
@@ -71,7 +71,7 @@ module.exports = function(path) {
 
   var clone = function(location, callback) {
     mkdirp(path, function(err) {
-        gitExecute('clone ' + location + ' .', callback)
+        gitExecute('clone "' + location + '" .', callback)
     })
   }
 
