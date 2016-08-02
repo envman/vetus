@@ -49,5 +49,4 @@ describe('Load from a collection', function() {
     assert(testData.first.name === 'first' && testData.second.name === 'second')
     done()
   })
-
 })

@@ -49,5 +49,4 @@ describe('Updating a collection', function() {
     assert(testData.first.name === 'updated')
     done()
   })
-
 })
