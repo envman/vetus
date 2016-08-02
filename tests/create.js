@@ -3,7 +3,7 @@ var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
 
-var testDirectory = path.join(__dirname, '..', 'test-temp')
+var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
 var vetus = require('./../app')({ path: testDirectory })
 
@@ -45,7 +45,7 @@ describe('Create a new collection', function() {
   })
 
   it('Bare directory should exist', function(done) {
-    fs.lstat(barerepoPath, function(lstatErr, stats) {
+    fs.lstat(path.join(barerepoPath, 'info'), function(lstatErr, stats) {
       assert(stats.isDirectory(), 'Directory ' + barerepoPath + ' does not exist')
       done()
     })
@@ -89,7 +89,7 @@ describe('Create a new collection', function() {
 
   it('Should have committed the files', function(done) {
     var Repository = require('./../src/repository')
-    var repo = new Repository(repoPath)
+    var repo = new Repository(userrepoPath)
 
     repo.clean(function() {
       fs.exists(testFilePath, function(exists) {

@@ -7,8 +7,9 @@ module.exports = function(path) {
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
 
+    // console.log(command, path)
+
     exec(command, {cwd: path}, function(error, result) {
-      // console.log(command + ' : ' + path)
 
       if (error != null) {
         console.log(error)

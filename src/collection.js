@@ -3,7 +3,6 @@ var Repository = require('./repository')
 var fs = require('fs')
 var Promise = require('promise')
 var mkdirp = require('mkdirp')
-// var settings = require('./settings')
 
 var write = Promise.denodeify(fs.writeFile)
 var read = Promise.denodeify(fs.readFile)
@@ -11,7 +10,7 @@ var read = Promise.denodeify(fs.readFile)
 module.exports = function(options) {
   var root = options.path
   var user = options.user || '_default'
-  var bareroot = path.join(root,'_bare')
+  var bareroot = path.join(root, '_bare')
   var data = {}
   var userroot = path.join(root, user)
 
@@ -20,31 +19,34 @@ module.exports = function(options) {
 
   var load = function(callback) {
 
-    fs.readdir(userroot, function(err, filenames) {
+    checkUserGit(function() {
+      repo.pull(function() {
+        fs.readdir(userroot, function(err, filenames) {
+          if (err) {
+            console.log(err)
+            return
+          }
 
-      if (err) {
-        console.log(err)
-        return;
-      }
+          var promises = filenames
+            .filter(f => f.endsWith('.json'))
+            .map(f => new Promise(function(done, error) {
 
-      var promises = filenames
-        .filter(f => f.endsWith('.json'))
-        .map(f => new Promise(function(done, error) {
+              fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
 
-          fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+                if (err) {
+                  error(err)
+                } else {
+                  var obj = JSON.parse(file)
+                  data[f.replace('.json', '')] = obj
+                  done()
+                }
+              })
+            }))
 
-            if (err) {
-              error(err)
-            } else {
-              var obj = JSON.parse(file)
-              data[f.replace('.json', '')] = obj
-              done()
-            }
+          Promise.all(promises).then(function() {
+            callback()
           })
-        }))
-
-      Promise.all(promises).then(function() {
-        callback()
+        })
       })
     })
   }
@@ -52,25 +54,52 @@ module.exports = function(options) {
   var save = function(message, callback) {
     createDirectory(function() {
       createUserDirectory(function() {
-        var promises = Object.getOwnPropertyNames(data)
-          .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(data[p])))
-        Promise.all(promises).then(function() {
-          gitExists(userroot, function(exists) {
-            if (!exists) {
-              repo.init(function() {
-                repo.addAll(function() {
-                  repo.commit(message, callback)
+        checkBareGit(function() {
+          checkUserGit(function() {
+            var promises = Object.getOwnPropertyNames(data)
+              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(data[p])))
+
+            Promise.all(promises).then(function() {
+              addAndCommit(message, function() {
+                repo.push(function() {
+                  callback()
                 })
               })
-            } else {
-              // Code needed here to verify if there are changes to commit
-              repo.addAll(function() {
-                repo.commit(message, callback)
-              })
-            }
+            })
           })
         })
       })
+    })
+  }
+
+  var checkBareGit = function(callback) {
+    gitExists(bareroot, function(bareExists) {
+      if (!bareExists) {
+        barerepo.initBare(function() {
+          callback()
+        })
+      } else {
+        callback()
+      }
+    })
+  }
+
+  var addAndCommit = function(message, callback) {
+    repo.addAll(function() {
+      repo.commit(message, callback)
+    })
+  }
+
+  var checkUserGit = function(callback) {
+
+    gitExists(userroot, function(exists) {
+      if (!exists) {
+        repo.clone(bareroot ,function() {
+          callback()
+        })
+      } else {
+        callback()
+      }
     })
   }
 
@@ -84,7 +113,7 @@ module.exports = function(options) {
       callback(stats.isDirectory())
     })
   }
-  
+
   // Should we combine these two createDirectories to a func with an argument?
 
   var createDirectory = function(callback) {

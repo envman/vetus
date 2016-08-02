@@ -7,7 +7,7 @@ var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
 var vetus = require('./../app')({ path: testDirectory })
 
-describe('Updating a collection', function() {
+describe('When multiple users are using the system', function() {
 
   var testData
 
@@ -20,21 +20,13 @@ describe('Updating a collection', function() {
 
     vetus.collection({name: 'test'}, function(saveCollection) {
       saveCollection.data.first = { name: 'first' }
-
       saveCollection.save('commit', function(err) {
 
-        vetus.collection({name: 'test'}, function(collection) {
-          collection.load(function() {
-            collection.data.first = { name: 'updated' }
-            collection.save('commit', function(err) {
+        vetus.collection({name: 'test', user: 'rob'}, function(collection) {
 
-             vetus.collection({name: 'test'}, function(updatedCollection) {
-                updatedCollection.load(function() {
-                  testData = updatedCollection.data
-                  done()
-                })
-              })
-            })
+          collection.load(function() {
+            testData = collection.data
+            done()
           })
         })
       })
@@ -45,8 +37,8 @@ describe('Updating a collection', function() {
     rimraf(testDirectory)
   })
 
-  it('File updated & committed correctly', function(done) {
-    assert(testData.first.name === 'updated')
+  it('Files contain correct data', function(done) {
+    assert(testData.first.name === 'first')
     done()
   })
 })
