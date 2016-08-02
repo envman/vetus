@@ -31,18 +31,34 @@ describe('Create a new collection', function() {
   })
 
   var repoPath = path.join(testDirectory, 'test')
-  var gitFolderPath = path.join(repoPath, '.git')
-  var testFilePath = path.join(repoPath, 'first.json')
-  var secondFilePath = path.join(repoPath, 'second.json')
+  var barerepoPath = path.join(repoPath, '_bare')
+  var userrepoPath = path.join(repoPath, '_default')
+  var gitFolderPath = path.join(userrepoPath, '.git')
+  var testFilePath = path.join(userrepoPath, 'first.json')
+  var secondFilePath = path.join(userrepoPath, 'second.json')
 
-  it('Directory should exist', function(done) {
+  it('Base directory should exist', function(done) {
     fs.lstat(repoPath, function(lstatErr, stats) {
       assert(stats.isDirectory(), 'Directory ' + repoPath + ' does not exist')
       done()
     })
   })
 
-  it('File should exist', function(done) {
+  it('Bare directory should exist', function(done) {
+    fs.lstat(barerepoPath, function(lstatErr, stats) {
+      assert(stats.isDirectory(), 'Directory ' + barerepoPath + ' does not exist')
+      done()
+    })
+  })
+
+  it('User directory should exist', function(done) {
+    fs.lstat(userrepoPath, function(lstatErr, stats) {
+      assert(stats.isDirectory(), 'Directory ' + userrepoPath + ' does not exist')
+      done()
+    })
+  })
+
+  it('First file exists', function(done) {
     fs.exists(testFilePath, function(exists) {
       assert(exists, 'path ' + testFilePath + ' does not exist')
       done()
@@ -64,7 +80,7 @@ describe('Create a new collection', function() {
     })
   })
 
-  it('Should be a git repository', function(done) {
+  it('Default user should contain a git repo', function(done) {
     fs.lstat(gitFolderPath, function(lstatErr, stats) {
       assert(stats.isDirectory(), 'Directory ' + gitFolderPath + ' does not exist')
       done()

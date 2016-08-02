@@ -20,7 +20,7 @@ describe('Updating a collection', function() {
 
     vetus.collection({name: 'test'}, function(saveCollection) {
       saveCollection.data.first = { name: 'first' }
-      saveCollection.data.second = { name: 'second' }
+      
       saveCollection.save('commit', function(err) {
 
         vetus.collection({name: 'test'}, function(collection) {
