@@ -7,8 +7,7 @@ module.exports = function(settings) {
   return {
     collection: function(options, callback) {
       var root = path.join(settings.path, options.name)
-      var user = options.user
-      callback(new Collection({path: root, user: user}))
+      callback(new Collection({path: root, user: options.user}))
     }
   }
 }
