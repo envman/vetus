@@ -85,15 +85,21 @@ module.exports = function(options) {
   }
 
   var addAndCommit = function(message, callback) {
-    repo.addAll(function() {
-      repo.commit(message, callback)
+    repo.status(function(status){
+      if (status){
+        repo.addAll(function() {
+          repo.commit(message, callback)
+        })
+      }
+      else {
+        callback()
+      }
     })
   }
 
   var checkUserGit = function(callback) {
-
-    gitExists(userroot, function(exists) {
-      if (!exists) {
+    gitExists(userroot, function(userExists) {
+      if (!userExists) {
         repo.clone(bareroot ,function() {
           callback()
         })

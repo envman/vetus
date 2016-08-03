@@ -82,6 +82,12 @@ module.exports = function(path) {
   var clean = function(callback) {
     gitExecute('clean -f', callback)
   }
+  
+  var status = function(callback) {
+    gitExecute('status --porcelain', function(result){
+        callback(result)
+    })
+  }
 
   return {
       commit: commit,
@@ -95,5 +101,6 @@ module.exports = function(path) {
       config: config,
       reset: reset,
       clean: clean
+      status: status
     }
 }
