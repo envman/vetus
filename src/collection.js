@@ -10,6 +10,8 @@ var read = Promise.denodeify(fs.readFile)
 module.exports = function(options) {
   var root = options.path
   var user = options.user || '_default'
+  var branch = options.branch || 'master'
+
   var bareroot = path.join(root, '_bare')
   var data = {}
   var userroot = path.join(root, user)
@@ -19,32 +21,34 @@ module.exports = function(options) {
 
   var load = function(callback) {
 
-    checkUserGit(function() {
-      repo.pull(function() {
-        fs.readdir(userroot, function(err, filenames) {
-          if (err) {
-            console.log(err)
-            return
-          }
+    createUserDirectory(function() {
+      checkUserGit(function(userExists) {
+        repo.pull(function() {
+          fs.readdir(userroot, function(err, filenames) {
+            if (err) {
+              console.log(err)
+              return
+            }
 
-          var promises = filenames
-            .filter(f => f.endsWith('.json'))
-            .map(f => new Promise(function(done, error) {
+            var promises = filenames
+              .filter(f => f.endsWith('.json'))
+              .map(f => new Promise(function(done, error) {
 
-              fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+                fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
 
-                if (err) {
-                  error(err)
-                } else {
-                  var obj = JSON.parse(file)
-                  data[f.replace('.json', '')] = obj
-                  done()
-                }
-              })
-            }))
+                  if (err) {
+                    error(err)
+                  } else {
+                    var obj = JSON.parse(file)
+                    data[f.replace('.json', '')] = obj
+                    done()
+                  }
+                })
+              }))
 
-          Promise.all(promises).then(function() {
-            callback()
+            Promise.all(promises).then(function() {
+              callback()
+            })
           })
         })
       })
@@ -55,13 +59,14 @@ module.exports = function(options) {
     createDirectory(function() {
       createUserDirectory(function() {
         checkBareGit(function() {
-          checkUserGit(function() {
+          checkUserGit(function(userExists) {
             var promises = Object.getOwnPropertyNames(data)
               .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(data[p])))
 
             Promise.all(promises).then(function() {
+              var pushOptions = userExists ? "" : " origin master"
               addAndCommit(message, function() {
-                repo.push(function() {
+                repo.push(pushOptions, function() {
                   callback()
                 })
               })
@@ -72,6 +77,7 @@ module.exports = function(options) {
     })
   }
 
+  // broken
   var checkBareGit = function(callback) {
     gitExists(bareroot, function(bareExists) {
       if (!bareExists) {
@@ -101,10 +107,10 @@ module.exports = function(options) {
     gitExists(userroot, function(userExists) {
       if (!userExists) {
         repo.clone(bareroot ,function() {
-          callback()
+          callback(userExists)
         })
       } else {
-        callback()
+        callback(userExists)
       }
     })
   }
@@ -129,11 +135,9 @@ module.exports = function(options) {
         mkdirp(bareroot, function() {
           callback()
         })
-
-        return
+      } else {
+        callback()
       }
-
-      callback()
     })
   }
 
@@ -144,11 +148,9 @@ module.exports = function(options) {
         mkdirp(userroot, function() {
           callback()
         })
-
-        return
+      } else {
+        callback()
       }
-
-      callback()
     })
   }
 

@@ -9,6 +9,7 @@ var vetus = require('./../app')({ path: testDirectory })
 
 describe('Load from a collection', function() {
 
+  this.timeout(15000)
   var testData
 
   before(function(done) {
@@ -23,9 +24,8 @@ describe('Load from a collection', function() {
       saveCollection.data.second = { name: 'second' }
 
       saveCollection.save('commit', function(err) {
-
-        vetus.collection({name: 'test'}, function(collection) {
-
+        
+        vetus.collection({name: 'test', user:'jamie'}, function(collection) {
           collection.load(function() {
             testData = collection.data
 

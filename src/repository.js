@@ -61,8 +61,8 @@ module.exports = function(path) {
     gitExecute('pull', callback)
   }
 
-  var push = function(callback) {
-    gitExecute('push', callback)
+  var push = function(options, callback) {
+    gitExecute('push' + options, callback)
   }
 
   var addAll = function(callback) {
@@ -77,6 +77,16 @@ module.exports = function(path) {
 
   var reset = function(type, callback) {
     gitExecute('reset --' + type, callback)
+  }
+  
+  //fix this
+  var checkout = function(branch, callback) {
+    gitExecute('checkout ' + branch, callback)
+  }
+
+  //fix this
+  var branch = function() {
+    gitExecute('branch ', callback)
   }
 
   var clean = function(callback) {
