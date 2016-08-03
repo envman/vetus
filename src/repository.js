@@ -10,7 +10,6 @@ module.exports = function(path) {
     // console.log(command, path)
 
     exec(command, {cwd: path}, function(error, result) {
-
       if (error != null) {
         console.log(error)
         return
@@ -110,7 +109,9 @@ module.exports = function(path) {
       initBare: initBare,
       config: config,
       reset: reset,
-      clean: clean
+      checkout: checkout,
+      branch: branch,
+      clean: clean,
       status: status
     }
 }
