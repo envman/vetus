@@ -7,7 +7,7 @@ module.exports = function(path) {
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
 
-    // console.log(command, path)
+    //console.log(command, path)
 
     exec(command, {cwd: path}, function(error, result) {
       if (error != null) {
@@ -56,8 +56,8 @@ module.exports = function(path) {
     })
   }
 
-  var pull = function(callback) {
-    gitExecute('pull', callback)
+  var pull = function(branch, callback) {
+    gitExecute('pull ' + branch, callback)
   }
 
   var push = function(options, callback) {
@@ -70,7 +70,7 @@ module.exports = function(path) {
 
   var clone = function(location, callback) {
     mkdirp(path, function(err) {
-        gitExecute('clone "' + location + '" .', callback)
+        gitExecute('clone "' + location + '" . ', callback)
     })
   }
 
@@ -78,12 +78,10 @@ module.exports = function(path) {
     gitExecute('reset --' + type, callback)
   }
 
-  //fix this
   var checkout = function(branch, callback) {
     gitExecute('checkout ' + branch, callback)
   }
 
-  //fix this
   var branch = function(branch, callback) {
     gitExecute('branch ' + branch, callback)
   }

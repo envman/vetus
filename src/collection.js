@@ -26,9 +26,8 @@ module.exports = function(options) {
     createUserDirectory(function() {
       checkUserGit(function() {
         changeBranch(branch, function(branchExists) {
-          console.log("BRANCHEXISTS = " + branchExists)
           if (branchExists) {
-            repo.pull(function() {
+            repo.pull('origin ' + branch, function() {
               fs.readdir(userroot, function(err, filenames) {
                 if (err) {
                   console.log(err)
@@ -73,7 +72,6 @@ module.exports = function(options) {
               .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(data[p])))
 
             Promise.all(promises).then(function() {
-              console.log("Bare initialised : " + barerepoInit)
               if (!barerepoInit) {
                 repo.status(function(status) {
                   if (status) {
@@ -90,10 +88,10 @@ module.exports = function(options) {
                   }
                 })
               } else {
-                console.log("Saving to branch " + branch)
+                //console.log("Saving to branch " + branch)
                 changeBranch(branch, function(){
                   addAndCommit(message, function() {
-                    repo.push("", function() {
+                    repo.push(" origin " + branch, function() {
                       callback()
                     })
                   })
@@ -108,7 +106,7 @@ module.exports = function(options) {
 
   var changeBranch = function(newbranch, callback) {
     repo.branchExists(newbranch, function(branchExists){
-      console.log("Changing branch to branch " + newbranch)
+      //console.log("Changing branch to branch " + newbranch)
       if (branchExists) {
         repo.checkout(newbranch, function() {
           callback(branchExists)
