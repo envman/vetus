@@ -77,15 +77,15 @@ module.exports = function(path) {
   var reset = function(type, callback) {
     gitExecute('reset --' + type, callback)
   }
-  
+
   //fix this
   var checkout = function(branch, callback) {
     gitExecute('checkout ' + branch, callback)
   }
 
   //fix this
-  var branch = function() {
-    gitExecute('branch ', callback)
+  var branch = function(branch, callback) {
+    gitExecute('branch ' + branch, callback)
   }
 
   var clean = function(callback) {
@@ -93,8 +93,14 @@ module.exports = function(path) {
   }
   
   var status = function(callback) {
-    gitExecute('status --porcelain', function(result){
+    gitExecute('status --porcelain', function(result) {
         callback(result)
+    })
+  }
+
+  var branchExists = function(branch, callback) {
+    gitExecute('branch --list ' + branch, function(result) {
+      callback(result)
     })
   }
 
@@ -112,6 +118,7 @@ module.exports = function(path) {
       checkout: checkout,
       branch: branch,
       clean: clean,
-      status: status
+      status: status,
+      branchExists : branchExists
     }
 }

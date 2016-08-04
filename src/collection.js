@@ -13,43 +13,52 @@ module.exports = function(options) {
   var branch = options.branch || 'master'
 
   var bareroot = path.join(root, '_bare')
-  var data = {}
   var userroot = path.join(root, user)
 
   var barerepo = new Repository(bareroot)
   var repo = new Repository(userroot)
+  var barerepoInit 
+  
+  var data = {}
 
   var load = function(callback) {
 
     createUserDirectory(function() {
-      checkUserGit(function(userExists) {
-        repo.pull(function() {
-          fs.readdir(userroot, function(err, filenames) {
-            if (err) {
-              console.log(err)
-              return
-            }
+      checkUserGit(function() {
+        changeBranch(branch, function(branchExists) {
+          console.log("BRANCHEXISTS = " + branchExists)
+          if (branchExists) {
+            repo.pull(function() {
+              fs.readdir(userroot, function(err, filenames) {
+                if (err) {
+                  console.log(err)
+                  return
+                }
 
-            var promises = filenames
-              .filter(f => f.endsWith('.json'))
-              .map(f => new Promise(function(done, error) {
+                var promises = filenames
+                  .filter(f => f.endsWith('.json'))
+                  .map(f => new Promise(function(done, error) {
 
-                fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+                    fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
 
-                  if (err) {
-                    error(err)
-                  } else {
-                    var obj = JSON.parse(file)
-                    data[f.replace('.json', '')] = obj
-                    done()
-                  }
+                      if (err) {
+                        error(err)
+                      } else {
+                        var obj = JSON.parse(file)
+                        data[f.replace('.json', '')] = obj
+                        done()
+                      }
+                    })
+                  }))
+
+                Promise.all(promises).then(function() {
+                  callback()
                 })
-              }))
-
-            Promise.all(promises).then(function() {
-              callback()
+              })
             })
-          })
+          } else {
+            callback()
+          }
         })
       })
     })
@@ -64,12 +73,32 @@ module.exports = function(options) {
               .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(data[p])))
 
             Promise.all(promises).then(function() {
-              var pushOptions = userExists ? "" : " origin master"
-              addAndCommit(message, function() {
-                repo.push(pushOptions, function() {
-                  callback()
+              console.log("Bare initialised : " + barerepoInit)
+              if (!barerepoInit) {
+                repo.status(function(status) {
+                  if (status) {
+                    console.log("WARNING: Initial push forced to origin master")
+                    addAndCommit(message, function() {
+                      repo.push(" origin master", function() {
+                        barerepoInit = true
+                        callback()
+                      })
+                    })
+                  } else {
+                    console.log("WARNING: Empty save - Repo not initialised!")
+                    callback()
+                  }
                 })
-              })
+              } else {
+                console.log("Saving to branch " + branch)
+                changeBranch(branch, function(){
+                  addAndCommit(message, function() {
+                    repo.push("", function() {
+                      callback()
+                    })
+                  })
+                })
+              }
             })
           })
         })
@@ -77,9 +106,25 @@ module.exports = function(options) {
     })
   }
 
-  // broken
+  var changeBranch = function(newbranch, callback) {
+    repo.branchExists(newbranch, function(branchExists){
+      console.log("Changing branch to branch " + newbranch)
+      if (branchExists) {
+        repo.checkout(newbranch, function() {
+          callback(branchExists)
+        })
+      } else {
+        repo.branch(newbranch, function() {
+          repo.checkout(newbranch, function() {
+            callback(branchExists)
+          })
+        })
+      }
+    })
+  }
+
   var checkBareGit = function(callback) {
-    gitExists(bareroot, function(bareExists) {
+    baregitExists(bareroot, function(bareExists) {
       if (!bareExists) {
         barerepo.initBare(function() {
           callback()
@@ -126,7 +171,20 @@ module.exports = function(options) {
     })
   }
 
-  // Should we combine these two createDirectories to a func with an argument?
+  var baregitExists = function(gitroot, callback) {
+    fs.lstat(path.join(gitroot, 'info'), function(lstatErr, stats) {
+      if (lstatErr) {
+        callback(false)
+        return
+      }
+
+      callback(stats.isDirectory())
+    })
+  }
+
+  baregitExists(bareroot, function(result){
+    barerepoInit = result
+  })
 
   var createDirectory = function(callback) {
     fs.lstat(bareroot, function(err, stats) {

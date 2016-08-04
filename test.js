@@ -4,4 +4,5 @@ describe('Vetus Tests', function() {
   require('./tests/load')
   require('./tests/update')
   require('./tests/users')
+  require('./tests/branch')
 })
