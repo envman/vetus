@@ -11,11 +11,12 @@ module.exports = function(path) {
 
     exec(command, {cwd: path}, function(error, result) {
       if (error != null) {
-        console.log(error)
-        return
+        console.log("Error with command - " + command)
+        callback(result, error)
       }
-
-      callback(result)
+      else {
+        callback(result)
+      }
     })
   }
 
@@ -41,6 +42,12 @@ module.exports = function(path) {
       var jsonString = '[' + commaRemoved + ']'
 
       callback(JSON.parse(jsonString))
+    })
+  }
+
+  var log = function(logOptions, callback) {
+    gitExecute('log ' + logOptions, function(result) {
+      callback(result)
     })
   }
 
@@ -97,8 +104,11 @@ module.exports = function(path) {
   }
 
   var merge = function(branch, callback) {
-    gitExecute('merge ' + branch, function(result) {
-      callback(result)
+    gitExecute('merge ' + branch, function(result, err) {
+      if (err) {
+        err = "difference" // check diff?
+      }
+      callback(result, err)
     })
   }
 
@@ -111,6 +121,7 @@ module.exports = function(path) {
   return {
       commit: commit,
       jsonLog: jsonLog,
+      log: log,
       init:init,
       pull: pull,
       push: push,
