@@ -96,6 +96,12 @@ module.exports = function(path) {
     })
   }
 
+  var merge = function(branch, callback) {
+    gitExecute('merge ' + branch, function(result) {
+      callback(result)
+    })
+  }
+
   var branchExists = function(branch, callback) {
     gitExecute('branch --list ' + branch, function(result) {
       callback(result)
@@ -117,6 +123,7 @@ module.exports = function(path) {
       branch: branch,
       clean: clean,
       status: status,
-      branchExists : branchExists
+      branchExists : branchExists,
+      merge: merge
     }
 }

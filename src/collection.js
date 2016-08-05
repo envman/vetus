@@ -104,6 +104,12 @@ module.exports = function(options) {
     })
   }
 
+  var merge = function(mergeToBranch, callback) {
+    repo.checkout(mergeToBranch, function() {
+      repo.merge(branch, callback)
+    })
+  }
+
   var changeBranch = function(newbranch, callback) {
     repo.branchExists(newbranch, function(branchExists){
       //console.log("Changing branch to branch " + newbranch)
@@ -213,6 +219,7 @@ module.exports = function(options) {
   return {
     data: data,
     load: load,
-    save: save
+    save: save,
+    merge: merge
   }
 }
