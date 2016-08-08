@@ -77,4 +77,15 @@ describe('Branching tests', function() {
       })
     })
   })
+
+  it('should handle remote branches', function(done) {
+    vetus.collection({name:'test', user: 'new-user'}, function(collection) {
+      collection.load(function() {
+        collection.branchList(function(list) {
+          console.log(list)
+          done()
+        })
+      })
+    })
+  })
 })

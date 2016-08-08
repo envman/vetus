@@ -122,9 +122,13 @@ module.exports = function(path) {
   }
 
   var branchList = function(callback) {
-    gitExecute('branch', function(result) {
+    gitExecute('branch --all', function(result) {
       callback(result)
     })
+  }
+
+  var fetch = function(callback) {
+    gitExecute('fetch', callback)
   }
 
   return {
@@ -146,6 +150,7 @@ module.exports = function(path) {
       branchExists : branchExists,
       merge: merge,
       mergeBase : mergeBase,
-      branchList: branchList
+      branchList: branchList,
+      fetch: fetch
     }
 }

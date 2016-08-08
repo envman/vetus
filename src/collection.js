@@ -305,24 +305,39 @@ module.exports = function(options) {
   }
 
   var branchList = function(callback) {
-    repo.branchList(function(list) {
-      var items = list.split('\n')
+    repo.fetch(function() {
+      repo.branchList(function(list) {
+        var items = list.split('\n')
 
-      var items = items
-        .filter(b => b !== '')
-        .map(b => {
-        if (b.startsWith('* ')) {
-          return b.replace('* ', '')
-        }
+        var items = items
+          .filter(b => b !== '')
+          .map(b => {
+          if (b.startsWith('* ')) {
+            b = b.replace('* ', '')
+          }
 
-        if (b.startsWith('  ')) {
-          return b.substring(2)
-        }
+          if (b.startsWith('  ')) {
+            b = b.substring(2)
+          }
 
-        return b
+          if (b.startsWith('remotes/origin/')) {
+            b = b.replace('remotes/origin/', '')
+          }
+
+          return b
+        })
+        .filter(b => !b.startsWith('HEAD'))
+
+        callback(arrayUnique(items))
       })
-      callback(items)
     })
+  }
+
+  var arrayUnique = function(a) {
+      return a.reduce(function(p, c) {
+          if (p.indexOf(c) < 0) p.push(c)
+          return p
+      }, [])
   }
 
   var collection = {
