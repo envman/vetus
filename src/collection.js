@@ -69,7 +69,7 @@ module.exports = function(options) {
         checkBareGit(function() {
           checkUserGit(function(userExists) {
             var promises = Object.getOwnPropertyNames(collection.data)
-              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p])))
+              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p], null, 2)))
 
             Promise.all(promises).then(function() {
               if (!barerepoInit) {
