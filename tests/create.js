@@ -2,6 +2,7 @@ var assert = require('chai').assert
 var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
+var framework = new require('./test-framework')()
 
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
@@ -16,14 +17,12 @@ describe('Create a new collection', function() {
 
     fs.mkdirSync(testDirectory)
 
-    vetus.collection({name: 'test'}, function(collection) {
-      collection.data.first = { name: 'first' }
-      collection.data.second = { name: 'second' }
+    var data = {
+      first: { name: 'first' },
+      second: { name: 'second' }
+    }
 
-      collection.save('commit', function(err) {
-        done()
-      })
-    })
+    framework.save({ data: data }, done)
   })
 
   after(function() {

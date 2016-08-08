@@ -41,7 +41,30 @@ vetus.collection({ name: 'collection-name', user: 'user-name' }, function(collec
     collection.data.test = updated
 
     collection.save(function(saveErr) {
-      
+
+    })
+  })
+})
+
+// Update some data
+vetus.collection({ name: 'collection-name', user: 'user-name' }, function(collection) {
+
+  collection.merge('other', function(conflicts, merged) {
+    if (conflicts) {
+      return merged
+    }
+  })
+
+  collection.load(function(err) {
+    if (err) {
+      res.status(bad)
+      return
+    }
+
+    collection.data.test = updated
+
+    collection.save(function(saveErr) {
+
     })
   })
 })

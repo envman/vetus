@@ -6,6 +6,7 @@ var rimraf = require('rimraf').sync
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
 var vetus = require('./../app')({ path: testDirectory })
+var framework = new require('./test-framework')()
 
 describe('Load from a collection', function() {
 
@@ -19,20 +20,15 @@ describe('Load from a collection', function() {
 
     fs.mkdirSync(testDirectory)
 
-    vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'first' }
-      saveCollection.data.second = { name: 'second' }
+    var data = {
+      first: { name: 'first' },
+      second: { name: 'second' }
+    }
 
-      saveCollection.save('commit', function(err) {
-        
-        vetus.collection({name: 'test', user:'jamie'}, function(collection) {
-          collection.load(function() {
-            testData = collection.data
+    framework.saveThenLoad({ data: data, user: 'jamie'}, function(collection) {
+      testData = collection.data
 
-            done()
-          })
-        })
-      })
+      done()
     })
   })
 

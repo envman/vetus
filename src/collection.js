@@ -17,8 +17,8 @@ module.exports = function(options) {
 
   var barerepo = new Repository(bareroot)
   var repo = new Repository(userroot)
-  var barerepoInit 
-  
+  var barerepoInit
+
   var data = {}
 
   var load = function(callback) {
@@ -68,8 +68,8 @@ module.exports = function(options) {
       createUserDirectory(function() {
         checkBareGit(function() {
           checkUserGit(function(userExists) {
-            var promises = Object.getOwnPropertyNames(data)
-              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(data[p])))
+            var promises = Object.getOwnPropertyNames(collection.data)
+              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p])))
 
             Promise.all(promises).then(function() {
               if (!barerepoInit) {
@@ -210,9 +210,11 @@ module.exports = function(options) {
     })
   }
 
-  return {
+  var collection = {
     data: data,
     load: load,
     save: save
   }
+
+  return collection
 }
