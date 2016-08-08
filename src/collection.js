@@ -110,11 +110,62 @@ module.exports = function(options) {
           repo.merge(" --abort", function() {
             console.log("Merge conflict : ")
             console.log(output)
+            resolveConflict(mergeToBranch)
           })
           callback(err)
         } else {
           callback()
         }
+      })
+    })
+  }
+
+  var resolveConflict = function(mergeToBranch, callback) {
+    repo.mergeBase(branch, mergeToBranch, function(base) {
+      var baseObj, leftObj, rightObj
+      branchToObj(base, function(baseObj) {
+        baseObj = baseObj
+        branchToObj(branch, function(leftObj) {
+          leftObj = leftObj
+          branchToObj(mergeToBranch, function(rightObj) {
+            rightObj = rightObj
+            // diff(baseObj, leftObj, rightObj, function() {
+            //   callback()
+            // })
+          })
+        })
+      })
+    })
+  }
+
+  var branchToObj = function(currentbranch, callback) {
+    repo.checkout(currentbranch, function() {
+      var localdata = {}
+      fs.readdir(userroot, function(err, filenames) {
+        if (err) {
+          console.log(err)
+          return
+        }
+
+        var promises = filenames
+          .filter(f => f.endsWith('.json'))
+          .map(f => new Promise(function(done, error) {
+
+            fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+
+              if (err) {
+                error(err)
+              } else {
+                var obj = JSON.parse(file)
+                localdata[f.replace('.json', '')] = obj
+                done()
+              }
+            })
+          }))
+
+        Promise.all(promises).then(function() {
+          callback(localdata)
+        })
       })
     })
   }
