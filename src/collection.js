@@ -304,13 +304,35 @@ module.exports = function(options) {
     })
   }
 
+  var branchList = function(callback) {
+    repo.branchList(function(list) {
+      var items = list.split('\n')
+
+      var items = items
+        .filter(b => b !== '')
+        .map(b => {
+        if (b.startsWith('* ')) {
+          return b.replace('* ', '')
+        }
+
+        if (b.startsWith('  ')) {
+          return b.substring(2)
+        }
+
+        return b
+      })
+      callback(items)
+    })
+  }
+
   var collection = {
     data: data,
     load: load,
     save: save,
     createBranch: createBranch,
     merge: merge,
-    getHistory: getHistory
+    getHistory: getHistory,
+    branchList: branchList
   }
 
   return collection

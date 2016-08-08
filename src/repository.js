@@ -96,7 +96,7 @@ module.exports = function(path) {
   var clean = function(callback) {
     gitExecute('clean -f', callback)
   }
-  
+
   var status = function(callback) {
     gitExecute('status --porcelain', function(result) {
         callback(result)
@@ -121,6 +121,12 @@ module.exports = function(path) {
     })
   }
 
+  var branchList = function(callback) {
+    gitExecute('branch', function(result) {
+      callback(result)
+    })
+  }
+
   return {
       commit: commit,
       jsonLog: jsonLog,
@@ -139,6 +145,7 @@ module.exports = function(path) {
       status: status,
       branchExists : branchExists,
       merge: merge,
-      mergeBase : mergeBase
+      mergeBase : mergeBase,
+      branchList: branchList
     }
 }

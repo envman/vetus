@@ -49,12 +49,32 @@ describe('Branching tests', function() {
   after(function() {
     rimraf(testDirectory)
   })
+
   it('Master branch created successfully & unmodified', function(done) {
     assert(masterData.first.name === 'first')
     done()
   })
+
   it('Dev branch created and updated successfully', function(done) {
     assert(branchData.first.name === 'updated')
     done()
+  })
+
+  it('branch list contains first branch', function(done) {
+    vetus.collection({name: 'test'}, function(collection) {
+      collection.branchList(function(list) {
+        assert(list[0] === 'dev')
+        done()
+      })
+    })
+  })
+
+  it('branch list contains second branch', function(done) {
+    vetus.collection({name: 'test'}, function(collection) {
+      collection.branchList(function(list) {
+        assert(list[1] === 'master')
+        done()
+      })
+    })
   })
 })
