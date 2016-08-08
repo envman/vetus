@@ -10,6 +10,7 @@ var read = Promise.denodeify(fs.readFile)
 module.exports = function(options) {
   var root = options.path
   var user = options.user || '_default'
+  var email = options.email || user + '@vetus'
   var branch = options.branch || 'master'
 
   var bareroot = path.join(root, '_bare')
@@ -173,7 +174,9 @@ module.exports = function(options) {
       if (!userExists) {
         repo.clone(bareroot ,function() {
           repo.config('user.name "' + user + '"', function() {
+            repo.config('user.email ' + email, function() {
               callback(userExists)
+            })
           })
         })
       } else {
