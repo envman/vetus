@@ -172,7 +172,9 @@ module.exports = function(options) {
     gitExists(userroot, function(userExists) {
       if (!userExists) {
         repo.clone(bareroot ,function() {
-          callback(userExists)
+          repo.config('user.name "' + user + '"', function() {
+              callback(userExists)
+          })
         })
       } else {
         callback(userExists)
@@ -236,7 +238,7 @@ module.exports = function(options) {
     data: data,
     load: load,
     save: save,
-    merge: merge, 
+    merge: merge,
     getHistory: getHistory
   }
 
