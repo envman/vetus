@@ -105,9 +105,12 @@ module.exports = function(path) {
 
   var merge = function(branch, callback) {
     gitExecute('merge ' + branch, function(result, err) {
-      if (err) {
-        err = "difference" // check diff?
-      }
+      callback(result, err)
+    })
+  }
+
+  var mergeBase = function(branch, mergeToBranch, callback) {
+    gitExecute('merge-base ' + branch + ' ' + mergeToBranch, function(result, err) {
       callback(result, err)
     })
   }
@@ -135,6 +138,7 @@ module.exports = function(path) {
       clean: clean,
       status: status,
       branchExists : branchExists,
-      merge: merge
+      merge: merge,
+      mergeBase : mergeBase
     }
 }
