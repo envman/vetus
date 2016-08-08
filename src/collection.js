@@ -104,14 +104,14 @@ module.exports = function(options) {
     })
   }
 
-  var merge = function(mergeToBranch, callback) {
-    repo.checkout(mergeToBranch, function() {
-      repo.merge(branch, function(output, err) {
+  var merge = function(fromBranch, callback) {
+    repo.checkout(branch, function() {
+      repo.merge(fromBranch, function(output, err) {
         if (err) {
           repo.merge(" --abort", function() {
             console.log("Merge conflict : ")
             console.log(output)
-            resolveConflict(mergeToBranch)
+            resolveConflict(fromBranch)
           })
           callback(err)
         } else {
