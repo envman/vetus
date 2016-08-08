@@ -39,7 +39,7 @@ describe('(Basic) Merging', function() {
                             masterData = masterCollection.data
                             masterCollection.getHistory('-p -5', function(log) {
                               masterLog = log
-                              console.log(masterLog)
+                              // console.log(masterLog)
                               done()
                             })
                           })
