@@ -56,6 +56,7 @@ module.exports = function(options) {
               })
             })
           } else {
+            console.log("ERROR: Branch does not exist - use createBranch")
             callback()
           }
         })
@@ -121,6 +122,26 @@ module.exports = function(options) {
     })
   }
 
+  var createBranch = function(newbranch, callback) {
+    repo.branchExists(newbranch, function(branchExists){
+      if (!branchExists) {
+        repo.checkout(branch, function() {
+          repo.branch(newbranch, function() {
+            repo.checkout(newbranch, function() {
+              repo.push(" origin " + newbranch, function() {
+                console.log("Branch created & pushed to origin")
+                callback()
+              })
+            })
+          })
+        })
+      } else {
+        console.log("ERROR: Branch already exists")
+        callback()
+      }
+    })
+  }
+
   var resolveConflict = function(mergeToBranch, callback) {
     repo.mergeBase(branch, mergeToBranch, function(base) {
       var baseObj, leftObj, rightObj
@@ -180,17 +201,12 @@ module.exports = function(options) {
 
   var changeBranch = function(newbranch, callback) {
     repo.branchExists(newbranch, function(branchExists){
-      //console.log("Changing branch to branch " + newbranch)
       if (branchExists) {
         repo.checkout(newbranch, function() {
           callback(branchExists)
         })
       } else {
-        repo.branch(newbranch, function() {
-          repo.checkout(newbranch, function() {
-            callback(branchExists)
-          })
-        })
+        console.log("ERROR: Branch does not exist - use createBranch")
       }
     })
   }
@@ -292,6 +308,7 @@ module.exports = function(options) {
     data: data,
     load: load,
     save: save,
+    createBranch: createBranch,
     merge: merge,
     getHistory: getHistory
   }

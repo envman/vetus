@@ -23,24 +23,26 @@ describe('(Basic) Merging', function() {
     vetus.collection({name: 'test'}, function(saveCollection) {
       saveCollection.data.first = { name: 'first' }
       saveCollection.save('added first', function(err) {
-        vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
-          collection.load(function() {
-            collection.data.first = { name: 'updated' }
-            collection.save('updated first in dev', function(err) {
-              saveCollection.load(function() {
-                saveCollection.data.second = { name: 'second' }
-                saveCollection.save('added second to master', function(err) {
-                  collection.merge('master', function(err) {
-                    vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
-                      branchCollection.load(function() {
-                        branchData = branchCollection.data
-                        vetus.collection({name: 'test'}, function(masterCollection) {
-                          masterCollection.load(function() {
-                            masterData = masterCollection.data
-                            masterCollection.getHistory('-p -5', function(log) {
-                              masterLog = log
-                              // console.log(masterLog)
-                              done()
+        saveCollection.createBranch('dev', function() {
+          vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
+            collection.load(function() {
+              collection.data.first = { name: 'updated' }
+              collection.save('updated first in dev', function(err) {
+                saveCollection.load(function() {
+                  saveCollection.data.second = { name: 'second' }
+                  saveCollection.save('added second to master', function(err) {
+                    collection.merge('master', function(err) {
+                      vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
+                        branchCollection.load(function() {
+                          branchData = branchCollection.data
+                          vetus.collection({name: 'test'}, function(masterCollection) {
+                            masterCollection.load(function() {
+                              masterData = masterCollection.data
+                              masterCollection.getHistory('-p -5', function(log) {
+                                masterLog = log
+                                // console.log(masterLog)
+                                done()
+                              })
                             })
                           })
                         })

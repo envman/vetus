@@ -22,22 +22,24 @@ describe('(Basic) Conflicts', function() {
     vetus.collection({name: 'test'}, function(saveCollection) {
       saveCollection.data.first = { name: 'first' }
       saveCollection.save('commit', function(err) {
-        vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
-          collection.load(function() {
-            collection.data.first = { name: 'updated' }
-            collection.save('commit', function(err) {
-              saveCollection.load(function() {
-                saveCollection.data.first = { name: 'conflict' }
-                saveCollection.data.second = { name: 'second' }
-                saveCollection.save('commit2', function(err) {
-                  collection.merge('master', function(err) {
-                    vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
-                      branchCollection.load(function() {
-                        branchData = branchCollection.data
-                        vetus.collection({name: 'test'}, function(masterCollection) {
-                          masterCollection.load(function() {
-                            masterData = masterCollection.data
-                            done()
+        saveCollection.createBranch('dev', function() {
+          vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
+            collection.load(function() {
+              collection.data.first = { name: 'updated' }
+              collection.save('commit', function(err) {
+                saveCollection.load(function() {
+                  saveCollection.data.first = { name: 'conflict' }
+                  saveCollection.data.second = { name: 'second' }
+                  saveCollection.save('commit2', function(err) {
+                    collection.merge('master', function(err) {
+                      vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
+                        branchCollection.load(function() {
+                          branchData = branchCollection.data
+                          vetus.collection({name: 'test'}, function(masterCollection) {
+                            masterCollection.load(function() {
+                              masterData = masterCollection.data
+                              done()
+                            })
                           })
                         })
                       })
