@@ -22,7 +22,6 @@ module.exports = function(options) {
   var data = {}
 
   var load = function(callback) {
-
     createUserDirectory(function() {
       checkUserGit(function() {
         changeBranch(branch, function(branchExists) {
@@ -101,6 +100,29 @@ module.exports = function(options) {
           })
         })
       })
+    })
+  }
+
+  var merge = function(mergeToBranch, callback) {
+    repo.checkout(mergeToBranch, function() {
+      repo.merge(branch, function(output, err) {
+        if (err) {
+          repo.merge(" --abort", function() {
+            console.log("Merge conflict : ")
+            console.log(output)
+          })
+          callback(err)
+        } else {
+          callback()
+        }
+      })
+    })
+  }
+
+  var getHistory = function(logOptions, callback) {
+    repo.log(logOptions + ' ' + branch, function(result) {
+      //console.log(result)
+      callback(result)
     })
   }
 
@@ -213,7 +235,9 @@ module.exports = function(options) {
   var collection = {
     data: data,
     load: load,
-    save: save
+    save: save,
+    merge: merge, 
+    getHistory: getHistory
   }
 
   return collection
