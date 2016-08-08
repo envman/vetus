@@ -10,6 +10,7 @@ var read = Promise.denodeify(fs.readFile)
 module.exports = function(options) {
   var root = options.path
   var user = options.user || '_default'
+  var email = options.email || user + '@vetus'
   var branch = options.branch || 'master'
 
   var bareroot = path.join(root, '_bare')
@@ -69,7 +70,7 @@ module.exports = function(options) {
         checkBareGit(function() {
           checkUserGit(function(userExists) {
             var promises = Object.getOwnPropertyNames(collection.data)
-              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p])))
+              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p], null, 2)))
 
             Promise.all(promises).then(function() {
               if (!barerepoInit) {
@@ -104,14 +105,14 @@ module.exports = function(options) {
     })
   }
 
-  var merge = function(mergeToBranch, callback) {
-    repo.checkout(mergeToBranch, function() {
-      repo.merge(branch, function(output, err) {
+  var merge = function(fromBranch, callback) {
+    repo.checkout(branch, function() {
+      repo.merge(fromBranch, function(output, err) {
         if (err) {
           repo.merge(" --abort", function() {
             console.log("Merge conflict : ")
             console.log(output)
-            resolveConflict(mergeToBranch)
+            resolveConflict(fromBranch)
           })
           callback(err)
         } else {
@@ -240,7 +241,9 @@ module.exports = function(options) {
       if (!userExists) {
         repo.clone(bareroot ,function() {
           repo.config('user.name "' + user + '"', function() {
+            repo.config('user.email ' + email, function() {
               callback(userExists)
+            })
           })
         })
       } else {
