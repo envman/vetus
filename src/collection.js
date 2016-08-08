@@ -10,42 +10,54 @@ var read = Promise.denodeify(fs.readFile)
 module.exports = function(options) {
   var root = options.path
   var user = options.user || '_default'
+  var branch = options.branch || 'master'
+
   var bareroot = path.join(root, '_bare')
-  var data = {}
   var userroot = path.join(root, user)
 
   var barerepo = new Repository(bareroot)
   var repo = new Repository(userroot)
+  var barerepoInit 
+  
+  var data = {}
 
   var load = function(callback) {
 
-    checkUserGit(function() {
-      repo.pull(function() {
-        fs.readdir(userroot, function(err, filenames) {
-          if (err) {
-            console.log(err)
-            return
-          }
-
-          var promises = filenames
-            .filter(f => f.endsWith('.json'))
-            .map(f => new Promise(function(done, error) {
-
-              fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
-
+    createUserDirectory(function() {
+      checkUserGit(function() {
+        changeBranch(branch, function(branchExists) {
+          if (branchExists) {
+            repo.pull('origin ' + branch, function() {
+              fs.readdir(userroot, function(err, filenames) {
                 if (err) {
-                  error(err)
-                } else {
-                  var obj = JSON.parse(file)
-                  data[f.replace('.json', '')] = obj
-                  done()
+                  console.log(err)
+                  return
                 }
-              })
-            }))
 
-          Promise.all(promises).then(function() {
+                var promises = filenames
+                  .filter(f => f.endsWith('.json'))
+                  .map(f => new Promise(function(done, error) {
+
+                    fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+
+                      if (err) {
+                        error(err)
+                      } else {
+                        var obj = JSON.parse(file)
+                        data[f.replace('.json', '')] = obj
+                        done()
+                      }
+                    })
+                  }))
+
+                Promise.all(promises).then(function() {
+                  callback()
+                })
+              })
+            })
+          } else {
             callback()
-          })
+          }
         })
       })
     })
@@ -55,16 +67,36 @@ module.exports = function(options) {
     createDirectory(function() {
       createUserDirectory(function() {
         checkBareGit(function() {
-          checkUserGit(function() {
+          checkUserGit(function(userExists) {
             var promises = Object.getOwnPropertyNames(data)
               .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(data[p])))
 
             Promise.all(promises).then(function() {
-              addAndCommit(message, function() {
-                repo.push(function() {
-                  callback()
+              if (!barerepoInit) {
+                repo.status(function(status) {
+                  if (status) {
+                    console.log("WARNING: Initial push forced to origin master")
+                    addAndCommit(message, function() {
+                      repo.push(" origin master", function() {
+                        barerepoInit = true
+                        callback()
+                      })
+                    })
+                  } else {
+                    console.log("WARNING: Empty save - Repo not initialised!")
+                    callback()
+                  }
                 })
-              })
+              } else {
+                //console.log("Saving to branch " + branch)
+                changeBranch(branch, function(){
+                  addAndCommit(message, function() {
+                    repo.push(" origin " + branch, function() {
+                      callback()
+                    })
+                  })
+                })
+              }
             })
           })
         })
@@ -72,8 +104,25 @@ module.exports = function(options) {
     })
   }
 
+  var changeBranch = function(newbranch, callback) {
+    repo.branchExists(newbranch, function(branchExists){
+      //console.log("Changing branch to branch " + newbranch)
+      if (branchExists) {
+        repo.checkout(newbranch, function() {
+          callback(branchExists)
+        })
+      } else {
+        repo.branch(newbranch, function() {
+          repo.checkout(newbranch, function() {
+            callback(branchExists)
+          })
+        })
+      }
+    })
+  }
+
   var checkBareGit = function(callback) {
-    gitExists(bareroot, function(bareExists) {
+    baregitExists(bareroot, function(bareExists) {
       if (!bareExists) {
         barerepo.initBare(function() {
           callback()
@@ -85,20 +134,26 @@ module.exports = function(options) {
   }
 
   var addAndCommit = function(message, callback) {
-    repo.addAll(function() {
-      repo.commit(message, callback)
+    repo.status(function(status){
+      if (status){
+        repo.addAll(function() {
+          repo.commit(message, callback)
+        })
+      }
+      else {
+        callback()
+      }
     })
   }
 
   var checkUserGit = function(callback) {
-
-    gitExists(userroot, function(exists) {
-      if (!exists) {
+    gitExists(userroot, function(userExists) {
+      if (!userExists) {
         repo.clone(bareroot ,function() {
-          callback()
+          callback(userExists)
         })
       } else {
-        callback()
+        callback(userExists)
       }
     })
   }
@@ -114,7 +169,20 @@ module.exports = function(options) {
     })
   }
 
-  // Should we combine these two createDirectories to a func with an argument?
+  var baregitExists = function(gitroot, callback) {
+    fs.lstat(path.join(gitroot, 'info'), function(lstatErr, stats) {
+      if (lstatErr) {
+        callback(false)
+        return
+      }
+
+      callback(stats.isDirectory())
+    })
+  }
+
+  baregitExists(bareroot, function(result){
+    barerepoInit = result
+  })
 
   var createDirectory = function(callback) {
     fs.lstat(bareroot, function(err, stats) {
@@ -123,11 +191,9 @@ module.exports = function(options) {
         mkdirp(bareroot, function() {
           callback()
         })
-
-        return
+      } else {
+        callback()
       }
-
-      callback()
     })
   }
 
@@ -138,11 +204,9 @@ module.exports = function(options) {
         mkdirp(userroot, function() {
           callback()
         })
-
-        return
+      } else {
+        callback()
       }
-
-      callback()
     })
   }
 

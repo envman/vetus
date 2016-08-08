@@ -10,7 +10,7 @@ module.exports = function(settings) {
       var root = path.join(settings.path, options.name)
 
       fs.exists(root, function(exists) {
-        var collection = new Collection({path: root, user: options.user})
+        var collection = new Collection({path: root, user: options.user, branch: options.branch})
         collection.exists = exists
 
         callback(collection)

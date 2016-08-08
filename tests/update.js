@@ -19,19 +19,20 @@ describe('Updating a collection', function() {
     fs.mkdirSync(testDirectory)
 
     vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'first' }
-
       saveCollection.save('commit', function(err) {
+        saveCollection.data.first = { name: 'first' }
+        saveCollection.save('commit', function(err) {
 
-        vetus.collection({name: 'test'}, function(collection) {
-          collection.load(function() {
-            collection.data.first = { name: 'updated' }
-            collection.save('commit', function(err) {
+          vetus.collection({name: 'test'}, function(collection) {
+            collection.load(function() {
+              collection.data.first = { name: 'updated' }
+              collection.save('commit', function(err) {
 
-             vetus.collection({name: 'test'}, function(updatedCollection) {
-                updatedCollection.load(function() {
-                  testData = updatedCollection.data
-                  done()
+               vetus.collection({name: 'test'}, function(updatedCollection) {
+                  updatedCollection.load(function() {
+                    testData = updatedCollection.data
+                    done()
+                  })
                 })
               })
             })

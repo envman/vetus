@@ -7,10 +7,9 @@ module.exports = function(path) {
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
 
-    // console.log(command, path)
+    //console.log(command, path)
 
     exec(command, {cwd: path}, function(error, result) {
-
       if (error != null) {
         console.log(error)
         return
@@ -57,12 +56,12 @@ module.exports = function(path) {
     })
   }
 
-  var pull = function(callback) {
-    gitExecute('pull', callback)
+  var pull = function(branch, callback) {
+    gitExecute('pull ' + branch, callback)
   }
 
-  var push = function(callback) {
-    gitExecute('push', callback)
+  var push = function(options, callback) {
+    gitExecute('push' + options, callback)
   }
 
   var addAll = function(callback) {
@@ -71,7 +70,7 @@ module.exports = function(path) {
 
   var clone = function(location, callback) {
     mkdirp(path, function(err) {
-        gitExecute('clone "' + location + '" .', callback)
+        gitExecute('clone "' + location + '" . ', callback)
     })
   }
 
@@ -79,8 +78,28 @@ module.exports = function(path) {
     gitExecute('reset --' + type, callback)
   }
 
+  var checkout = function(branch, callback) {
+    gitExecute('checkout ' + branch, callback)
+  }
+
+  var branch = function(branch, callback) {
+    gitExecute('branch ' + branch, callback)
+  }
+
   var clean = function(callback) {
     gitExecute('clean -f', callback)
+  }
+  
+  var status = function(callback) {
+    gitExecute('status --porcelain', function(result) {
+        callback(result)
+    })
+  }
+
+  var branchExists = function(branch, callback) {
+    gitExecute('branch --list ' + branch, function(result) {
+      callback(result)
+    })
   }
 
   return {
@@ -94,6 +113,10 @@ module.exports = function(path) {
       initBare: initBare,
       config: config,
       reset: reset,
-      clean: clean
+      checkout: checkout,
+      branch: branch,
+      clean: clean,
+      status: status,
+      branchExists : branchExists
     }
 }
