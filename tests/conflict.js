@@ -32,17 +32,14 @@ describe('(Basic) Conflicts', function() {
                   saveCollection.data.first = { john: 'lol', name: 'conflict', other: 'test'  }
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('commit2', function(err) {
-                    saveCollection.attrBlame('name', 'first.json', function(blameresult) {
-                      blameJson = blameresult
-                      saveCollection.merge('dev', function(err) {
-                        vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
-                          branchCollection.load(function() {
-                            branchData = branchCollection.data
-                            vetus.collection({name: 'test'}, function(masterCollection) {
-                              masterCollection.load(function() {
-                                masterData = masterCollection.data
-                                done()
-                              })
+                    saveCollection.merge('dev', function(err) {
+                      vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
+                        branchCollection.load(function() {
+                          branchData = branchCollection.data
+                          vetus.collection({name: 'test'}, function(masterCollection) {
+                            masterCollection.load(function() {
+                              masterData = masterCollection.data
+                              done()
                             })
                           })
                         })
@@ -75,9 +72,4 @@ describe('(Basic) Conflicts', function() {
     done()
   })
 
-  it('Blame Json created', function(done) {
-    assert(blameJson)
-    console.log(blameJson)
-    done()
-  })
 })
