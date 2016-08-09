@@ -192,6 +192,13 @@ module.exports = function(options) {
     })
   }
 
+  var attrBlame = function(attribute, file, callback) {
+    repo.log('-L /"' + attribute + '"/,+1:' + file, function(result) {
+      console.log(result)
+      callback(result)
+    })
+  }
+
   var getHistory = function(logOptions, callback) {
     repo.log(logOptions + ' ' + branch, function(result) {
       //console.log(result)
@@ -346,6 +353,7 @@ module.exports = function(options) {
     save: save,
     createBranch: createBranch,
     merge: merge,
+    attrBlame: attrBlame,
     getHistory: getHistory,
     branchList: branchList
   }
