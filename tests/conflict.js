@@ -36,11 +36,18 @@ describe('(Basic) Conflicts', function() {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
-                          vetus.collection({name: 'test'}, function(masterCollection) {
-                            masterCollection.load(function() {
-                              masterData = masterCollection.data
-                              done()
-                            })
+                          saveCollection.updateHistory(function() {
+                            vetus.collection({name: 'test'}, function(masterCollection) {
+                              masterCollection.load(function() {
+                                masterData = masterCollection.data
+                                masterCollection.data.first = { john: 'loledit', name: 'conflictedx2', other: 'test' }
+                                masterCollection.save("commit3", function (){
+                                  masterCollection.updateHistory(function() {
+                                    done()
+                                  })
+                                })
+                              })
+                            })                          
                           })
                         })
                       })

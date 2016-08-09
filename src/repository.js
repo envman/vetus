@@ -7,11 +7,12 @@ module.exports = function(path) {
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
 
-    //console.log(command, path)
+   // console.log(command, path)
 
     exec(command, {cwd: path}, function(error, result) {
       if (error != null) {
         console.log("Error with command - " + command)
+        console.log(error)
         callback(result, error)
       }
       else {
@@ -44,8 +45,18 @@ module.exports = function(path) {
 
       // add array [ & ]
       var jsonString = '[' + commaRemoved + ']'
-      
+
       callback(JSON.parse(jsonString))
+    })
+  }
+
+  var log = function(logOptions, callback) {
+    if (typeof logOptions === 'function') {
+      callback = logOptions
+      logOptions = ''
+    }
+    gitExecute('log ' + logOptions, function(result) {
+      callback(result)
     })
   }
 
@@ -132,6 +143,7 @@ module.exports = function(path) {
   return {
       commit: commit,
       jsonLog: jsonLog,
+      log: log,
       init:init,
       pull: pull,
       push: push,
