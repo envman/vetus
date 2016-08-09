@@ -11,6 +11,7 @@ describe('(Basic) Conflicts', function() {
 
   var branchData
   var masterData
+  var blameJson
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -20,18 +21,18 @@ describe('(Basic) Conflicts', function() {
     fs.mkdirSync(testDirectory)
 
     vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'first' }
+      saveCollection.data.first = { name: 'first', other: 'test' }
       saveCollection.save('commit', function(err) {
         saveCollection.createBranch('dev', function() {
           vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
             collection.load(function() {
-              collection.data.first = { name: 'updated' }
+              collection.data.first = { name: 'updated', other: 'test' }
               collection.save('commit', function(err) {
                 saveCollection.load(function() {
-                  saveCollection.data.first = { name: 'conflict' }
+                  saveCollection.data.first = { john: 'lol', name: 'conflict', other: 'test'  }
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('commit2', function(err) {
-                    collection.merge('master', function(err) {
+                    saveCollection.merge('dev', function(err) {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
@@ -70,4 +71,5 @@ describe('(Basic) Conflicts', function() {
     assert(!branchData.second)
     done()
   })
+
 })

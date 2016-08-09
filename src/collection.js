@@ -193,7 +193,7 @@ module.exports = function(options) {
   }
 
   var getHistory = function(logOptions, callback) {
-    repo.log(logOptions + ' ' + branch, function(result) {
+    repo.jsonLog(logOptions + ' ' + branch, function(result) {
       //console.log(result)
       callback(result)
     })
