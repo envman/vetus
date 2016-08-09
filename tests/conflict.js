@@ -31,7 +31,7 @@ describe('(Basic) Conflicts', function() {
                   saveCollection.data.first = { name: 'conflict' }
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('commit2', function(err) {
-                    collection.merge('master', function(err) {
+                    saveCollection.merge('dev', function(err) {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data

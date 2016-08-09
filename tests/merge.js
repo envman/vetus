@@ -31,7 +31,7 @@ describe('(Basic) Merging', function() {
                 saveCollection.load(function() {
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('added second to master', function(err) {
-                    collection.merge('master', function(err) {
+                    saveCollection.merge('dev', function(err) {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
