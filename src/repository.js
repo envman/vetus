@@ -28,9 +28,13 @@ module.exports = function(path) {
     gitExecute('commit -m "' + message + '"', callback)
   }
 
-  var jsonLog = function(callback) {
+  var jsonLog = function(logOptions, callback) {
+    if (typeof logOptions === 'function') {
+      callback = logOptions
+      logOptions = ''
+    }
 
-    gitExecute('log --pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%f*},"', function(data) {
+    gitExecute('log ' + logOptions + ' --pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%f*},"', function(data) {
 
       // replace *'s with "'s
       var quoted = data.split('*').join('"')
@@ -40,14 +44,8 @@ module.exports = function(path) {
 
       // add array [ & ]
       var jsonString = '[' + commaRemoved + ']'
-
+      
       callback(JSON.parse(jsonString))
-    })
-  }
-
-  var log = function(logOptions, callback) {
-    gitExecute('log ' + logOptions, function(result) {
-      callback(result)
     })
   }
 
@@ -134,7 +132,6 @@ module.exports = function(path) {
   return {
       commit: commit,
       jsonLog: jsonLog,
-      log: log,
       init:init,
       pull: pull,
       push: push,

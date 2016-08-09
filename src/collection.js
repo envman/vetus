@@ -193,14 +193,13 @@ module.exports = function(options) {
   }
 
   var attrBlame = function(attribute, file, callback) {
-    repo.log('-L /"' + attribute + '"/,+1:' + file, function(result) {
-      console.log(result)
+    repo.jsonLog('-l /"' + attribute + '"/,+1:' + file, function(result) {
       callback(result)
     })
   }
 
   var getHistory = function(logOptions, callback) {
-    repo.log(logOptions + ' ' + branch, function(result) {
+    repo.jsonLog(logOptions + ' ' + branch, function(result) {
       //console.log(result)
       callback(result)
     })
