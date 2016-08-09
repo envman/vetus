@@ -36,11 +36,13 @@ describe('(Basic) Conflicts', function() {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
-                          vetus.collection({name: 'test'}, function(masterCollection) {
-                            masterCollection.load(function() {
-                              masterData = masterCollection.data
-                              done()
-                            })
+                          branchCollection.updateHistory(function() {
+                            vetus.collection({name: 'test'}, function(masterCollection) {
+                              masterCollection.load(function() {
+                                masterData = masterCollection.data
+                                done()
+                              })
+                            })                          
                           })
                         })
                       })

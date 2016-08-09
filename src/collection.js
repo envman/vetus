@@ -112,9 +112,8 @@ module.exports = function(options) {
           repo.merge(" --abort", function() {
             console.log("Merge conflict : ")
             console.log(output)
-            resolveConflict(fromBranch)
+            resolveConflict(fromBranch,callback)
           })
-          callback(err)
         } else {
           callback()
         }
@@ -151,6 +150,7 @@ module.exports = function(options) {
           leftObj = leftObj
           branchToObj(mergeToBranch, function(rightObj) {
             rightObj = rightObj
+            callback()
             // diff(baseObj, leftObj, rightObj, function() {
             //   callback()
             // })
@@ -190,6 +190,88 @@ module.exports = function(options) {
         })
       })
     })
+  }
+
+  var recursiveBranchExists = function(index, commitPath, callback) {
+    repo.branchExists("hist_" + commitPath[index], function(result) {
+      if (result) {
+        callback(commitPath.slice(0,index+1))
+      } else if (index+1 == commitPath.length) {
+        callback(commitPath)
+      }
+      else {
+        recursiveBranchExists(index+1, commitPath, callback)
+      }
+    })
+  }
+
+  var updateHistory = function(callback) {
+    repo.log(branch + ' --pretty=format:"%H"', function(result) {
+      console.log(result)
+      commitPath = result.split('\n')
+      recursiveBranchExists(0, commitPath, function(slicedPath) {
+        getSharedCommits(branch, function(sharedCommits) {
+          orderedCommits = slicedPath.reverse()
+          createHistory(orderedCommits, sharedCommits, {}, function() { 
+            callback()
+          })
+        })
+      })
+
+
+      // // result is a list of commits w/ authors
+      // branchList(function(branches) {
+      //   // find commits which are within the scope of other branches -- merge-base branch 
+
+      //   function(done) {
+      //     repo.mergeBase(branch,f,function(result,err){
+
+      //     })
+      //   }
+      //   for(var i = 0; i < branches.length; i++) {
+
+      //   }
+
+      // })
+      // find commits which are within the scope of other branches -- merge-base branch 
+      // iterate through this, using promises
+    })
+  }
+
+  var getSharedCommits = function(branch, callback) {
+    repo.branchList(function(branches) {
+      var mergeBases = []
+      branches = (branches.split('\n')).slice(1,-1)
+      var promises = branches
+        .map(f => new Promise(function(done) {
+          repo.mergeBase(branch, f, function(result) {
+            mergeBases.push(result.trim())
+            done()
+          })
+        }))
+
+      Promise.all(promises).then(function() {
+        callback(mergeBases)
+      })
+    })
+  }
+
+  var createHistory = function(commitPath, sharedCommits, json, callback) {
+    console.log(commitPath)
+    console.log(sharedCommits)
+    if (commitPath.length > 0) {
+      updateJson(commitPath[0], json, function(result) {
+        //create branch and commit this new json bruh
+        createHistory(commitPath.slice(1), sharedCommits, result, callback)
+      })
+    } else {
+      callback()
+    }
+  }
+
+  var updateJson = function(commit, json, callback) {
+    // implement this LOL
+    callback()
   }
 
   var getHistory = function(logOptions, callback) {
@@ -345,6 +427,7 @@ module.exports = function(options) {
     load: load,
     save: save,
     createBranch: createBranch,
+    updateHistory: updateHistory,
     merge: merge,
     getHistory: getHistory,
     branchList: branchList
