@@ -36,7 +36,7 @@ describe('(Basic) Conflicts', function() {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
-                          branchCollection.updateHistory(function() {
+                          saveCollection.updateHistory(function() {
                             vetus.collection({name: 'test'}, function(masterCollection) {
                               masterCollection.load(function() {
                                 masterData = masterCollection.data

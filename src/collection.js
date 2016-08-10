@@ -193,9 +193,11 @@ module.exports = function(options) {
   }
 
   var recursiveBranchExists = function(index, commitPath, callback) {
-    repo.branchExists("hist_" + commitPath[index], function(result) {
+    repo.branchExists("hist_" + commitPath[index].commit, function(result) {
       if (result) {
-        callback(commitPath.slice(0,index+1))
+        var slicedPath = commitPath.slice(0,index+1)
+        console.log(slicedPath)
+        callback(slicedPath)
       } else if (index+1 == commitPath.length) {
         callback(commitPath)
       }
@@ -206,77 +208,150 @@ module.exports = function(options) {
   }
 
   var updateHistory = function(callback) {
-    repo.log(branch + ' --pretty=format:"%H"', function(result) {
-      console.log(result)
-      commitPath = result.split('\n')
-      recursiveBranchExists(0, commitPath, function(slicedPath) {
-        getSharedCommits(branch, function(sharedCommits) {
+    console.log("UPDATE HISTORY CALLED")
+    // get the commit path for this branch
+    repo.jsonLog(branch + ' -s ', function(result) {
+      // slice the path if there already exists a history branch
+      recursiveBranchExists(0, result, function(slicedPath) {
+        if (result != slicedPath) {
+          // We found a history branch! Let's use this & previous commit
+          console.log("History found in commit path")
           orderedCommits = slicedPath.reverse()
-          createHistory(orderedCommits, sharedCommits, {}, function() { 
-            callback()
+          branchToObj("hist_" + orderedCommits[0].commit, function(historyJson) {
+            getSharedCommits(branch, function(sharedCommits) {
+              currentCommit = orderedCommits[0]
+              orderedCommits.shift()
+              createHistory(currentCommit, orderedCommits, sharedCommits, historyJson, function() { 
+                callback()
+              })
+            })
           })
-        })
+        } else {
+          // We must create the history from scratch!
+          console.log("Making history from scratch")
+          slicedPath.push({})
+          orderedCommits = slicedPath.reverse()
+          getSharedCommits(branch, function(sharedCommits) {
+            currentCommit = orderedCommits[0]
+            orderedCommits.shift()
+            createHistory(currentCommit, orderedCommits, sharedCommits, {}, function() { 
+              callback()
+            })
+          })
+        }
       })
-
-
-      // // result is a list of commits w/ authors
-      // branchList(function(branches) {
-      //   // find commits which are within the scope of other branches -- merge-base branch 
-
-      //   function(done) {
-      //     repo.mergeBase(branch,f,function(result,err){
-
-      //     })
-      //   }
-      //   for(var i = 0; i < branches.length; i++) {
-
-      //   }
-
-      // })
-      // find commits which are within the scope of other branches -- merge-base branch 
-      // iterate through this, using promises
     })
   }
 
   var getSharedCommits = function(branch, callback) {
-    repo.branchList(function(branches) {
-      var mergeBases = []
-      branches = (branches.split('\n')).slice(1,-1)
-      var promises = branches
-        .map(f => new Promise(function(done) {
-          repo.mergeBase(branch, f, function(result) {
-            mergeBases.push(result.trim())
-            done()
-          })
-        }))
+    repo.checkout(branch, function() {
+      repo.branchList(function(branches) {
+        var mergeBases = []
+        branches = (branches.split('\n')).slice(1,-1)
+        var promises = branches
+          .map(f => new Promise(function(done) {
+            repo.mergeBase(branch, f, function(result) {
+              mergeBases.push(result.trim())
+              done()
+            })
+          }))
 
-      Promise.all(promises).then(function() {
-        callback(mergeBases)
+        Promise.all(promises).then(function() {
+          callback(mergeBases)
+        })
       })
     })
   }
 
-  var createHistory = function(commitPath, sharedCommits, json, callback) {
-    console.log(commitPath)
-    console.log(sharedCommits)
+  var createHistory = function(previousCommit, commitPath, sharedCommits, json, callback) {
+    
+    console.log("Create History called!")
+    console.log("Previous Commit = " + previousCommit.commit)
+    console.log("CommitPath length = " + commitPath.length)
+
     if (commitPath.length > 0) {
-      updateJson(commitPath[0], json, function(result) {
-        //create branch and commit this new json bruh
-        createHistory(commitPath.slice(1), sharedCommits, result, callback)
+      currentCommit = commitPath[0]
+      console.log("Updating commit " + previousCommit.commit)
+      console.log("   using commit " + currentCommit.commit)
+
+      updateJson(previousCommit, currentCommit, json, function(result) {
+        // create branch and commit this new json bruh
+        console.log("Recursive call to create history")
+        createHistory(currentCommit, commitPath.slice(1), sharedCommits, result, callback)
       })
     } else {
+      // Create a history branch @ previous commit
       callback()
     }
   }
 
-  var updateJson = function(commit, json, callback) {
-    // implement this LOL
+  var updateJson = function(oldCommitInfo, newCommitInfo, historyJson, callback) {
+    // convert this commit to an obj
+    branchToObj(newCommitInfo.commit, function(newCommitJson) {
+      // compare the jsons, returns new updated json
+      if (!oldCommitInfo.commit) {
+        console.log("INITIAL COMMIT")
+        compareJson({}, newCommitJson, historyJson, newCommitInfo, function(resultJson) {
+          console.log("how i get here")
+          callback(resultJson)
+        })
+      } else {
+        console.log("UPDATING COMMIT")
+        branchToObj(oldCommitInfo.commit, function(oldCommitJson) {
+          compareJson(oldCommitJson, newCommitJson, historyJson, newCommitInfo, function(resultJson) {
+            callback(resultJson)
+          })
+        })
+      }
+    })
+  }
+
+  var compareJson = function(oldCommitJson, newCommitJson, historyJson, newCommitInfo, callback) {
+
+    var histKeys = []
+    var sharedKeys = []
+    var deletedKeys = []
+    var newKeys = []
+
+    for (var i in newCommitJson) {
+      if (!(i in oldCommitJson)) {
+        newKeys.push(i)
+        console.log("New attribute - by " + newCommitInfo.author + " at " + newCommitInfo.date)
+        console.log(typeof i)
+      }
+    }
+
+    for (var i in oldCommitJson) {
+      if (i in newCommitJson) {
+        if (oldCommitJson[i] !== newCommitInfo[i]) {
+          console.log("Updated attribute")
+          console.log(typeof i)
+        }
+        sharedKeys.push(i)
+      }
+      else {
+        deletedKeys.push(i)
+        console.log("Deleted attribute")
+        console.log(typeof i)
+      }
+    }
+
+    console.log("New keys:")
+    console.log(newKeys)
+
+    // update historyJson
+
     callback()
+  }
+
+  var setNew = function (newKeys, newCommitJson, callback) {
+    var jsonExtract = {}
+    newKeys.map(f => jsonExtract[f] = "Created by "  + " at " )
+    callback(jsonExtract)
   }
 
   var getHistory = function(logOptions, callback) {
     repo.jsonLog(logOptions + ' ' + branch, function(result) {
-      //console.log(result)
       callback(result)
     })
   }
