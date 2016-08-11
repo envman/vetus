@@ -40,7 +40,12 @@ describe('(Basic) Conflicts', function() {
                             vetus.collection({name: 'test'}, function(masterCollection) {
                               masterCollection.load(function() {
                                 masterData = masterCollection.data
-                                done()
+                                masterCollection.data.first = { john: 'loledit', name: 'conflictedx2', other: 'test' }
+                                masterCollection.save("commit3", function (){
+                                  masterCollection.updateHistory(function() {
+                                    done()
+                                  })
+                                })
                               })
                             })                          
                           })
