@@ -36,27 +36,10 @@ describe('(Basic) Conflicts', function() {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
-                          saveCollection.updateHistory(function() {
-                            vetus.collection({name: 'test'}, function(masterCollection) {
-                              masterCollection.load(function() {
-                                masterData = masterCollection.data
-                                masterCollection.data.first = { john: { name: 'loledit'} }
-                                masterCollection.save("commit3", function (){
-                                  masterCollection.updateHistory(function(result) {
-                                    console.log("History of branch : ")
-                                    console.log(JSON.stringify(result, null, 2))
-                                    masterCollection.data.first = { john: 2 }
-                                    masterCollection.save("commit4", function (){
-                                      masterCollection.updateHistory(function(result2) {
-                                        console.log("History of branch : ")
-                                        console.log(JSON.stringify(result2, null, 2))
-                                        done()
-                                      })
-                                    })
-                                  })
-                                })
-                              })
-                            })                          
+                          console.log("here")
+                          saveCollection.history(function() {
+                            console.log("history called")
+                            callback()           
                           })
                         })
                       })
