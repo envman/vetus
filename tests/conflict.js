@@ -26,10 +26,10 @@ describe('(Basic) Conflicts', function() {
         saveCollection.createBranch('dev', function() {
           vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
             collection.load(function() {
-              collection.data.first = { name: 'updated', other: 'test' }
+              collection.data.first = { name: 'updated' }
               collection.save('commit', function(err) {
                 saveCollection.load(function() {
-                  saveCollection.data.first = { john: 'lol', name: 'conflict', other: 'test'  }
+                  saveCollection.data.first = { john: 'lol', name: 'conflict' }
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('commit2', function(err) {
                     saveCollection.merge('dev', function(err) {
@@ -40,10 +40,19 @@ describe('(Basic) Conflicts', function() {
                             vetus.collection({name: 'test'}, function(masterCollection) {
                               masterCollection.load(function() {
                                 masterData = masterCollection.data
-                                masterCollection.data.first = { john: 'loledit', name: 'conflictedx2', other: 'test' }
+                                masterCollection.data.first = { john: { name: 'loledit'} }
                                 masterCollection.save("commit3", function (){
-                                  masterCollection.updateHistory(function() {
-                                    done()
+                                  masterCollection.updateHistory(function(result) {
+                                    console.log("History of branch : ")
+                                    console.log(JSON.stringify(result, null, 2))
+                                    masterCollection.data.first = { john: 2 }
+                                    masterCollection.save("commit4", function (){
+                                      masterCollection.updateHistory(function(result2) {
+                                        console.log("History of branch : ")
+                                        console.log(JSON.stringify(result2, null, 2))
+                                        done()
+                                      })
+                                    })
                                   })
                                 })
                               })
