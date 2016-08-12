@@ -206,22 +206,6 @@ module.exports = function(options) {
     })
   }
 
-  var getSmallestCommitPath = function(index, commitPath, callback) {
-    repo.branchExists("hist_" + commitPath[index].commit, function(result) {
-      if (result) {
-        // TO ADD: A CHECK HERE IF THE HISTORY BRANCH IS VALID ON THIS COMMITPATH
-        var slicedPath = commitPath.slice(0,index+1)
-        console.log(slicedPath)
-        callback(slicedPath)
-      } else if (index+1 == commitPath.length) {
-        callback(commitPath)
-      }
-      else {
-        getSmallestCommitPath(index+1, commitPath, callback)
-      }
-    })
-  }
-
   var history = function(callback) {
     repo.jsonLog(branch + ' -s ', function(commits) {
       
