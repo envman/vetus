@@ -11,7 +11,6 @@ describe('(Basic) Conflicts', function() {
 
   var branchData
   var masterData
-  var blameJson
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -21,7 +20,7 @@ describe('(Basic) Conflicts', function() {
     fs.mkdirSync(testDirectory)
 
     vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'first', other: 'test' }
+      saveCollection.data.first = { name: 'first' }
       saveCollection.save('commit', function(err) {
         saveCollection.createBranch('dev', function() {
           vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
@@ -29,17 +28,18 @@ describe('(Basic) Conflicts', function() {
               collection.data.first = { name: 'updated' }
               collection.save('commit', function(err) {
                 saveCollection.load(function() {
-                  saveCollection.data.first = { john: 'lol', name: 'conflict' }
+                  saveCollection.data.first = { name: 'conflict' }
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('commit2', function(err) {
-                    saveCollection.merge('dev', function(err) {
+                    collection.merge('master', function(err) {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
-                          console.log("here")
-                          saveCollection.history(function() {
-                            console.log("history called")
-                            callback()           
+                          vetus.collection({name: 'test'}, function(masterCollection) {
+                            masterCollection.load(function() {
+                              masterData = masterCollection.data
+                              done()
+                            })
                           })
                         })
                       })
@@ -55,7 +55,7 @@ describe('(Basic) Conflicts', function() {
   })
 
   after(function() {
-    //rimraf(testDirectory)
+    rimraf(testDirectory)
   })
 
   it('Dev and Master not merged', function(done) {
@@ -70,5 +70,4 @@ describe('(Basic) Conflicts', function() {
     assert(!branchData.second)
     done()
   })
-
 })
