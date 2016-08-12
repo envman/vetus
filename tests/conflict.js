@@ -55,7 +55,7 @@ describe('(Basic) Conflicts', function() {
   })
 
   after(function() {
-    //rimraf(testDirectory)
+    rimraf(testDirectory)
   })
 
   it('Dev and Master not merged', function(done) {

@@ -3,6 +3,7 @@ var Repository = require('./repository')
 var fs = require('fs')
 var Promise = require('promise')
 var mkdirp = require('mkdirp')
+var historyGenerator = require('./history-generator')
 
 var write = Promise.denodeify(fs.writeFile)
 var read = Promise.denodeify(fs.readFile)
@@ -112,9 +113,8 @@ module.exports = function(options) {
           repo.merge(" --abort", function() {
             console.log("Merge conflict : ")
             console.log(output)
-            resolveConflict(fromBranch)
+            resolveConflict(fromBranch,callback)
           })
-          callback(err)
         } else {
           callback()
         }
@@ -151,6 +151,7 @@ module.exports = function(options) {
           leftObj = leftObj
           branchToObj(mergeToBranch, function(rightObj) {
             rightObj = rightObj
+            callback()
             // diff(baseObj, leftObj, rightObj, function() {
             //   callback()
             // })
@@ -192,11 +193,41 @@ module.exports = function(options) {
     })
   }
 
-  var getHistory = function(logOptions, callback) {
-    repo.log(logOptions + ' ' + branch, function(result) {
-      //console.log(result)
-      callback(result)
+  var objToBranch = function (obj, branchToSave, callback) {
+    var promises = Object.getOwnPropertyNames(obj)
+      .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(obj[p], null, 2)))
+
+    Promise.all(promises).then(function() {
+      addAndCommit(branchToSave, function() {
+        repo.push(" origin " + branchToSave, function() {
+          callback()
+        })
+      })
     })
+  }
+
+  var history = function(callback) {
+    repo.jsonLog(branch + ' -s ', function(commits) {
+      
+      loadCommits(commits.reverse(), [], function(commitDatas) {
+        var history = historyGenerator(commitDatas)
+        callback(history)  
+      })
+    })
+  }
+
+  var loadCommits = function(commits, commitDatas, callback) {
+    if (commits.length > 0) {
+      var commit = commits.shift()
+
+      branchToObj(commit.commit, function(obj) {
+        obj.$commit = commit
+        commitDatas.push(obj)
+        loadCommits(commits, commitDatas, callback)
+      })
+    } else {
+      callback(commitDatas)
+    }
   }
 
   var changeBranch = function(newbranch, callback) {
@@ -345,8 +376,8 @@ module.exports = function(options) {
     load: load,
     save: save,
     createBranch: createBranch,
+    history:history,
     merge: merge,
-    getHistory: getHistory,
     branchList: branchList
   }
 

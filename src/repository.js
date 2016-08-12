@@ -12,6 +12,7 @@ module.exports = function(path) {
     exec(command, {cwd: path}, function(error, result) {
       if (error != null) {
         console.log("Error with command - " + command)
+        console.log(error)
         callback(result, error)
       }
       else {
@@ -28,9 +29,13 @@ module.exports = function(path) {
     gitExecute('commit -m "' + message + '"', callback)
   }
 
-  var jsonLog = function(callback) {
+  var jsonLog = function(logOptions, callback) {
+    if (typeof logOptions === 'function') {
+      callback = logOptions
+      logOptions = ''
+    }
 
-    gitExecute('log --pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%f*},"', function(data) {
+    gitExecute('log ' + logOptions + ' --pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%f*},"', function(data) {
 
       // replace *'s with "'s
       var quoted = data.split('*').join('"')
@@ -46,6 +51,10 @@ module.exports = function(path) {
   }
 
   var log = function(logOptions, callback) {
+    if (typeof logOptions === 'function') {
+      callback = logOptions
+      logOptions = ''
+    }
     gitExecute('log ' + logOptions, function(result) {
       callback(result)
     })

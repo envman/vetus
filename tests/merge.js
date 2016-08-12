@@ -31,18 +31,14 @@ describe('(Basic) Merging', function() {
                 saveCollection.load(function() {
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('added second to master', function(err) {
-                    collection.merge('master', function(err) {
+                    saveCollection.merge('dev', function(err) {
                       vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
                           vetus.collection({name: 'test'}, function(masterCollection) {
                             masterCollection.load(function() {
                               masterData = masterCollection.data
-                              masterCollection.getHistory('-p -5', function(log) {
-                                masterLog = log
-                                // console.log(masterLog)
-                                done()
-                              })
+                              done()
                             })
                           })
                         })
@@ -74,11 +70,6 @@ describe('(Basic) Merging', function() {
 
   it('Dev has not changed', function(done) {
     assert(!branchData.second)
-    done()
-  })
-
-  it('Log succeeded', function(done) {
-    assert(masterLog)
     done()
   })
 })
