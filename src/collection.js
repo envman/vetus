@@ -444,19 +444,14 @@ module.exports = function(options) {
         }
       } else {
         // The attribute was deleted
+        if(historyJson[i]) {
+          delete historyJson[i]
+          modified = true
+        }
 
-        // TODO !!!???  (NOT SURE ON BEHAVIOUR -> SAVE INFO OR?)
-
-        console.log("Deleted attribute " + i)
-        if (typeof i == 'string') {
-          console.log("Its a string")
-          // idk
-        } else if (i instanceof Array) {
-          console.log("Its an array")
-          // idk
-        } else if (typeof i == 'object') {
-          console.log("Its an object")
-          // idk
+        if (historyJson["$hist_" + i]) {
+          delete historyJson["$hist_" + i]
+          modified = true
         }
       }
     }
