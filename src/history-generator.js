@@ -1,7 +1,7 @@
 module.exports = function(objects, history) {
 	history = history || {}
 
-	for (let obj of objects) {
+	for (var obj of objects) {
 		updateJson(obj, history)
 	}
 
@@ -21,7 +21,7 @@ module.exports = function(objects, history) {
     var modified = false
 
     for (var propertyName in obj) {
-    	var historyProperty = '$hist_' + propertyName			
+    	var historyProperty = '$hist_' + propertyName
 
       // If the attribute doesnt exist in the old Json OR the old json isnt an object..
       	if (typeof(obj[propertyName]) != 'object') {

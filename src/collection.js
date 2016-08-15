@@ -23,85 +23,89 @@ module.exports = function(options) {
 
   var data = {}
 
-  var load = function(callback) {
-    createUserDirectory(function() {
-      checkUserGit(function() {
-        changeBranch(branch, function(branchExists) {
-          if (branchExists) {
-            repo.pull('origin ' + branch, function() {
-              fs.readdir(userroot, function(err, filenames) {
-                if (err) {
-                  console.log(err)
-                  return
-                }
-
-                var promises = filenames
-                  .filter(f => f.endsWith('.json'))
-                  .map(f => new Promise(function(done, error) {
-
-                    fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
-
-                      if (err) {
-                        error(err)
-                      } else {
-                        var obj = JSON.parse(file)
-                        data[f.replace('.json', '')] = obj
-                        done()
-                      }
-                    })
-                  }))
-
-                Promise.all(promises).then(function() {
-                  callback()
-                })
-              })
-            })
-          } else {
-            console.log("ERROR: Branch does not exist - use createBranch")
+  var preCommand = function(callback) {
+    createDirectory(function() {
+      createUserDirectory(function() {
+        checkBareGit(function() {
+          checkUserGit(function() {
             callback()
-          }
+          })
         })
       })
     })
   }
 
-  var save = function(message, callback) {
-    createDirectory(function() {
-      createUserDirectory(function() {
-        checkBareGit(function() {
-          checkUserGit(function(userExists) {
-            var promises = Object.getOwnPropertyNames(collection.data)
-              .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p], null, 2)))
-
-            Promise.all(promises).then(function() {
-              if (!barerepoInit) {
-                repo.status(function(status) {
-                  if (status) {
-                    console.log("WARNING: Initial push forced to origin master")
-                    addAndCommit(message, function() {
-                      repo.push(" origin master", function() {
-                        barerepoInit = true
-                        callback()
-                      })
-                    })
-                  } else {
-                    console.log("WARNING: Empty save - Repo not initialised!")
-                    callback()
-                  }
-                })
-              } else {
-                //console.log("Saving to branch " + branch)
-                changeBranch(branch, function(){
-                  addAndCommit(message, function() {
-                    repo.push(" origin " + branch, function() {
-                      callback()
-                    })
-                  })
-                })
+  var load = function(callback) {
+    preCommand(function() {
+      changeBranch(branch, function(branchExists) {
+        if (branchExists) {
+          repo.pull('origin ' + branch, function() {
+            fs.readdir(userroot, function(err, filenames) {
+              if (err) {
+                console.log(err)
+                return
               }
+
+              var promises = filenames
+                .filter(f => f.endsWith('.json'))
+                .map(f => new Promise(function(done, error) {
+
+                  fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+
+                    if (err) {
+                      error(err)
+                    } else {
+                      var obj = JSON.parse(file)
+                      data[f.replace('.json', '')] = obj
+                      done()
+                    }
+                  })
+                }))
+
+              Promise.all(promises).then(function() {
+                callback()
+              })
             })
           })
-        })
+        } else {
+          console.log("ERROR: Branch does not exist - use createBranch")
+          callback()
+        }
+      })
+    })
+  }
+
+  var save = function(message, callback) {
+    preCommand(function() {
+      var promises = Object.getOwnPropertyNames(collection.data)
+        .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p], null, 2)))
+
+      Promise.all(promises).then(function() {
+        if (!barerepoInit) {
+          repo.status(function(status) {
+            if (status) {
+              console.log("WARNING: Initial push forced to origin master")
+              addAndCommit(message, function() {
+                repo.push(" origin master", function() {
+                  barerepoInit = true
+                  callback()
+                })
+              })
+            } else {
+              console.log("WARNING: Empty save - Repo not initialised!")
+              callback()
+            }
+          })
+        } else {
+          //console.log("Saving to branch " + branch)
+          changeBranch(branch, function(){
+            addAndCommit(message, function() {
+              repo.push(" origin " + branch, function() {
+                callback()
+              })
+            })
+          })
+        }
       })
     })
   }
@@ -111,8 +115,7 @@ module.exports = function(options) {
       repo.merge(fromBranch, function(output, err) {
         if (err) {
           repo.merge(" --abort", function() {
-            console.log("Merge conflict : ")
-            console.log(output)
+            console.log("Merge conflict : ", output)
             resolveConflict(fromBranch,callback)
           })
         } else {
@@ -123,22 +126,24 @@ module.exports = function(options) {
   }
 
   var createBranch = function(newbranch, callback) {
-    repo.branchExists(newbranch, function(branchExists){
-      if (!branchExists) {
-        repo.checkout(branch, function() {
-          repo.branch(newbranch, function() {
-            repo.checkout(newbranch, function() {
-              repo.push(" origin " + newbranch, function() {
-                console.log("Branch created & pushed to origin")
-                callback()
+    preCommand(function() {
+      repo.branchExists(newbranch, function(branchExists){
+        if (!branchExists) {
+          repo.checkout(branch, function() {
+            repo.branch(newbranch, function() {
+              repo.checkout(newbranch, function() {
+                repo.push(" origin " + newbranch, function() {
+                  console.log("Branch created & pushed to origin")
+                  callback()
+                })
               })
             })
           })
-        })
-      } else {
-        console.log("ERROR: Branch already exists")
-        callback()
-      }
+        } else {
+          console.log("ERROR: Branch already exists")
+          callback()
+        }
+      })
     })
   }
 
@@ -152,9 +157,6 @@ module.exports = function(options) {
           branchToObj(mergeToBranch, function(rightObj) {
             rightObj = rightObj
             callback()
-            // diff(baseObj, leftObj, rightObj, function() {
-            //   callback()
-            // })
           })
         })
       })
@@ -208,10 +210,10 @@ module.exports = function(options) {
 
   var history = function(callback) {
     repo.jsonLog(branch + ' -s ', function(commits) {
-      
+
       loadCommits(commits.reverse(), [], function(commitDatas) {
         var history = historyGenerator(commitDatas)
-        callback(history)  
+        callback(history)
       })
     })
   }
