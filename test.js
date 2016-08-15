@@ -6,7 +6,7 @@ describe('Vetus Tests', function() {
   require('./tests/users')
   require('./tests/branch')
   require('./tests/merge')
-   require('./tests/conflict')
+  require('./tests/conflict')
   require('./tests/diff'),
   require('./tests/diff-child-properties'),
   require('./tests/diff-array')

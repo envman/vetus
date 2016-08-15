@@ -23,54 +23,30 @@ module.exports = function(options) {
 
   var data = {}
 
-  var preCommand = function(callback) {
-    createDirectory(function() {
-      createUserDirectory(function() {
-        checkBareGit(function() {
-          checkUserGit(function() {
-            callback()
-          })
-        })
-      })
-    })
-  }
-
   var load = function(callback) {
-    preCommand(function() {
-      changeBranch(branch, function(branchExists) {
-        if (branchExists) {
-          repo.pull('origin ' + branch, function() {
-            fs.readdir(userroot, function(err, filenames) {
-              if (err) {
-                console.log(err)
-                return
-              }
-
-              var promises = filenames
-                .filter(f => f.endsWith('.json'))
-                .map(f => new Promise(function(done, error) {
-
-                  fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
-
-                    if (err) {
-                      error(err)
-                    } else {
-                      var obj = JSON.parse(file)
-                      data[f.replace('.json', '')] = obj
-                      done()
-                    }
-                  })
-                }))
-
-              Promise.all(promises).then(function() {
-                callback()
-              })
-            })
-          })
-        } else {
-          console.log("ERROR: Branch does not exist - use createBranch")
-          callback()
+    preCommand(function(branchExists) {
+      fs.readdir(userroot, function(err, filenames) {
+        if (err) {
+          console.log(err)
+          return
         }
+
+        var promises = filenames
+          .filter(f => f.endsWith('.json'))
+          .map(f => new Promise(function(done, error) {
+
+            fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+              if (err) return error(err)
+
+              var obj = JSON.parse(file)
+              data[f.replace('.json', '')] = obj
+              return done()
+            })
+          }))
+
+        Promise.all(promises).then(function() {
+          callback()
+        })
       })
     })
   }
@@ -86,7 +62,7 @@ module.exports = function(options) {
             if (status) {
               console.log("WARNING: Initial push forced to origin master")
               addAndCommit(message, function() {
-                repo.push(" origin master", function() {
+                repo.push(" origin " + branch, function() {
                   barerepoInit = true
                   callback()
                 })
@@ -126,7 +102,7 @@ module.exports = function(options) {
   }
 
   var createBranch = function(newbranch, callback) {
-    preCommand(function() {
+    preCommand(function(oldBranchExists) {
       repo.branchExists(newbranch, function(branchExists){
         if (!branchExists) {
           repo.checkout(branch, function() {
@@ -140,7 +116,6 @@ module.exports = function(options) {
             })
           })
         } else {
-          console.log("ERROR: Branch already exists")
           callback()
         }
       })
@@ -239,7 +214,7 @@ module.exports = function(options) {
           callback(branchExists)
         })
       } else {
-        console.log("ERROR: Branch does not exist - use createBranch")
+        callback(branchExists)
       }
     })
   }
@@ -362,6 +337,30 @@ module.exports = function(options) {
         .filter(b => !b.startsWith('HEAD'))
 
         callback(arrayUnique(items))
+      })
+    })
+  }
+
+  var pull = function(callback) {
+    repo.pull('origin ' + branch, function() {
+      callback()
+    })
+  }
+
+  var preCommand = function(callback) {
+    createDirectory(function() {
+      createUserDirectory(function() {
+        checkBareGit(function() {
+          checkUserGit(function() {
+            changeBranch(branch ,function(exists) {
+              if (exists) {
+                return pull(callback)
+              }
+
+              return callback(exists)
+            })
+          })
+        })
       })
     })
   }

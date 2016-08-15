@@ -37,6 +37,7 @@ describe('Load from a collection', function() {
   })
 
   it('Files loaded', function(done) {
+    console.log(testData)
     assert(testData.first.name && testData.second.name)
     done()
   })
