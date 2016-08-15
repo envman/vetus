@@ -19,7 +19,6 @@ module.exports = function(options) {
 
   var barerepo = new Repository(bareroot)
   var repo = new Repository(userroot)
-  var barerepoInit
 
   var data = {}
 
@@ -27,8 +26,7 @@ module.exports = function(options) {
     preCommand(function(branchExists) {
       fs.readdir(userroot, function(err, filenames) {
         if (err) {
-          console.log(err)
-          return
+          return console.log(err)
         }
 
         var promises = filenames
@@ -38,8 +36,7 @@ module.exports = function(options) {
             fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
               if (err) return error(err)
 
-              var obj = JSON.parse(file)
-              data[f.replace('.json', '')] = obj
+              data[f.replace('.json', '')] = JSON.parse(file)
               return done()
             })
           }))
@@ -57,37 +54,17 @@ module.exports = function(options) {
         .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p], null, 2)))
 
       Promise.all(promises).then(function() {
-        if (!barerepoInit) {
-          repo.status(function(status) {
-            if (status) {
-              console.log("WARNING: Initial push forced to origin master")
-              addAndCommit(message, function() {
-                repo.push(" origin " + branch, function() {
-                  barerepoInit = true
-                  callback()
-                })
-              })
-            } else {
-              console.log("WARNING: Empty save - Repo not initialised!")
-              callback()
-            }
+        addAndCommit(message, function() {
+          repo.push(" origin " + branch, function() {
+            callback()
           })
-        } else {
-          //console.log("Saving to branch " + branch)
-          changeBranch(branch, function(){
-            addAndCommit(message, function() {
-              repo.push(" origin " + branch, function() {
-                callback()
-              })
-            })
-          })
-        }
+        })
       })
     })
   }
 
   var merge = function(fromBranch, callback) {
-    repo.checkout(branch, function() {
+    preCommand(function(exists) {
       repo.merge(fromBranch, function(output, err) {
         if (err) {
           repo.merge(" --abort", function() {
@@ -165,19 +142,6 @@ module.exports = function(options) {
 
         Promise.all(promises).then(function() {
           callback(localdata)
-        })
-      })
-    })
-  }
-
-  var objToBranch = function (obj, branchToSave, callback) {
-    var promises = Object.getOwnPropertyNames(obj)
-      .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(obj[p], null, 2)))
-
-    Promise.all(promises).then(function() {
-      addAndCommit(branchToSave, function() {
-        repo.push(" origin " + branchToSave, function() {
-          callback()
         })
       })
     })
@@ -313,30 +277,18 @@ module.exports = function(options) {
   }
 
   var branchList = function(callback) {
-    repo.fetch(function() {
-      repo.branchList(function(list) {
-        var items = list.split('\n')
+    preCommand(function() {
+      repo.fetch(function() {
+        repo.branchList(function(list) {
+          var items = list.split('\n')
 
-        var items = items
-          .filter(b => b !== '')
-          .map(b => {
-          if (b.startsWith('* ')) {
-            b = b.replace('* ', '')
-          }
+          var items = items
+            .filter(b => b !== '')
+            .map(b => b.replace('* ', '').replace('  ', '').replace('remotes/origin/', ''))
+            .filter(b => !b.startsWith('HEAD'))
 
-          if (b.startsWith('  ')) {
-            b = b.substring(2)
-          }
-
-          if (b.startsWith('remotes/origin/')) {
-            b = b.replace('remotes/origin/', '')
-          }
-
-          return b
+          callback(arrayUnique(items))
         })
-        .filter(b => !b.startsWith('HEAD'))
-
-        callback(arrayUnique(items))
       })
     })
   }

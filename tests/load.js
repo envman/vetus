@@ -6,7 +6,7 @@ var rimraf = require('rimraf').sync
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
 var vetus = require('./../app')({ path: testDirectory })
-var framework = new require('./test-framework')()
+var framework = new require('./test-framework')
 
 describe('Load from a collection', function() {
 
@@ -25,11 +25,11 @@ describe('Load from a collection', function() {
       second: { name: 'second' }
     }
 
-    framework.saveThenLoad({ data: data, user: 'jamie'}, function(collection) {
-      testData = collection.data
-
-      done()
-    })
+    framework.collection({})
+      .then(c => framework.save(c, data))
+      .then(c => framework.load({}))
+      .then(c => testData = c.data)
+      .then(c => done())
   })
 
   after(function() {
@@ -37,7 +37,6 @@ describe('Load from a collection', function() {
   })
 
   it('Files loaded', function(done) {
-    console.log(testData)
     assert(testData.first.name && testData.second.name)
     done()
   })

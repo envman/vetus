@@ -6,7 +6,7 @@ var rimraf = require('rimraf').sync
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
 var vetus = require('./../app')({ path: testDirectory })
-var framework = new require('./test-framework')()
+var framework = new require('./test-framework')
 
 describe('Updating a collection', function() {
 
@@ -19,24 +19,21 @@ describe('Updating a collection', function() {
 
     fs.mkdirSync(testDirectory)
 
-    var input = {
-      data: {
-        first: {name: 'first'}
-      }
+    var data = {
+      first: {name: 'first'}
     }
 
-    framework.saveThenLoad(input, function(collection) {
-      collection.data.first = { name: 'updated' }
-      collection.save('commit', function(err) {
+    var updated = {
+      first: {name: 'updated'}
+    }
 
-       vetus.collection({name: 'test'}, function(updatedCollection) {
-          updatedCollection.load(function() {
-            testData = updatedCollection.data
-            done()
-          })
-        })
-      })
-    })
+    framework.collection({})
+      .then(c => framework.save(c, data))
+      .then(c => framework.load({}))
+      .then(c => framework.save(c, updated))
+      .then(c => framework.load({}))
+      .then(c => testData = c.data)
+      .then(c => done())
   })
 
   after(function() {

@@ -2,6 +2,7 @@ var assert = require('chai').assert
 var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
+var framework = new require('./test-framework')
 
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
@@ -20,24 +21,28 @@ describe('Repository history testing', function() {
 
     fs.mkdirSync(testDirectory)
 
-    vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'created', other: 'created', stringToObj: 'created' }
-      saveCollection.save('commit', function(err) {
-        saveCollection.data.first = { other: 'updated', stringToObj: { name: 'created'} }
-        saveCollection.data.second = { name: { old : "old" } }
-        saveCollection.save('commit2', function(err) {
-          vetus.collection({name: 'test', user:'jamie'}, function(userCollection) {
-            userCollection.data.second = { name: 'updated' }
-            userCollection.save('commit3' ,function(err) { 
-              userCollection.history(function(history) {
-                historyObj = history
-                done()       
-              })        
-            })
-          })
-        })
-      })
-    })
+    var first = {
+      first: { name: 'created', other: 'created', stringToObj: 'created' }
+    }
+
+    var second = {
+      first: { other: 'updated', stringToObj: { name: 'created'} },
+      second: { name: { old : "old" } }
+    }
+
+    var third = {
+      second: { name: 'updated' }
+    }
+
+    framework.collection({})
+      .then(c => framework.save(c, first))
+      .then(c => framework.save(c, second))
+      .then(c => framework.collection({user: 'jamie'}))
+      .then(c => framework.save(c, third))
+      .then(c => framework.load({}))
+      .then(c => framework.history(c))
+      .then(h => historyObj = h)
+      .then(c => done())
   })
 
 
@@ -50,7 +55,7 @@ describe('Repository history testing', function() {
     assert(historyObj[secondHistory], "Missing second history")
     done()
   })
-  
+
   it('First created & updated', function(done) {
     assert(historyObj.first.name == 'created', "Not created")
     assert(historyObj.first.other == 'updated', "Not updated")
@@ -68,8 +73,8 @@ describe('Repository history testing', function() {
   })
 
   it('Multiple user history correct' ,function(done) {
-    assert(historyObj.first.$hist_name.includes('_default'), "Failed default commits")
-    assert(historyObj.second.$hist_name.includes('jamie'), "Failed user commits")
+    assert(historyObj.first.$hist_name.includes('_default'), "Failed default commits " + historyObj.first.$hist_name)
+    assert(historyObj.second.$hist_name.includes('jamie'), "Failed user commits " + historyObj.second.$hist_name)
     done()
   })
 })

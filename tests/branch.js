@@ -11,6 +11,7 @@ describe('Branching tests', function() {
 
   var branchData
   var masterData
+  var collection
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -23,10 +24,10 @@ describe('Branching tests', function() {
       saveCollection.data.first = { name: 'first' }
       saveCollection.save('commit', function(err) {
         saveCollection.createBranch('dev', function() {
-          vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
-            collection.load(function() {
-              collection.data.first = { name: 'updated' }
-              collection.save('commit', function(err) {
+          vetus.collection({name: 'test', branch: 'dev'}, function(collection2) {
+            collection2.load(function() {
+              collection2.data.first = { name: 'updated' }
+              collection2.save('commit', function(err) {
                vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
                   branchCollection.load(function() {
                     branchData = branchCollection.data
@@ -80,11 +81,8 @@ describe('Branching tests', function() {
 
   it('should handle remote branches', function(done) {
     vetus.collection({name:'test', user: 'new-user'}, function(collection) {
-      collection.load(function() {
-        collection.branchList(function(list) {
-          console.log(list)
-          done()
-        })
+      collection.branchList(function(list) {
+        done()
       })
     })
   })

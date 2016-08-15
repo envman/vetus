@@ -2,10 +2,10 @@ var assert = require('chai').assert
 var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
-var framework = new require('./test-framework')()
+var framework = new require('./test-framework')
+var Promise = require('promise')
 
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
-
 var vetus = require('./../app')({ path: testDirectory })
 
 describe('Create a new collection', function() {
@@ -22,7 +22,9 @@ describe('Create a new collection', function() {
       second: { name: 'second' }
     }
 
-    framework.save({ data: data }, done)
+    framework.collection({})
+      .then(c => framework.save(c, data))
+      .then(c => done())
   })
 
   after(function() {
