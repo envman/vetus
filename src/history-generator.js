@@ -8,7 +8,7 @@ module.exports = function(objects, history) {
 	return history
 }
 
- var updateJson = function(obj, history) {
+var updateJson = function(obj, history) {
  	var commit = obj.$commit
  	delete obj.$commit
 
@@ -24,7 +24,7 @@ module.exports = function(objects, history) {
     	var historyProperty = '$hist_' + propertyName
 
       // If the attribute doesnt exist in the old Json OR the old json isnt an object..
-      	if (typeof(obj[propertyName]) != 'object') {
+      if (typeof(obj[propertyName]) != 'object') {
       	// simple type
       		if (!history[propertyName]) {
 		  		history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
@@ -34,13 +34,13 @@ module.exports = function(objects, history) {
 		  		history[propertyName] = obj[propertyName]
 		  		history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date + 'Type changed'
 		  		modified = true
-			} else if (obj[propertyName] != history[propertyName]) {
+			  } else if (obj[propertyName] != history[propertyName]) {
 	  			history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date
 	  			history[propertyName] = obj[propertyName]
 	  			modified = true
 	  		}
-		} else {
-			if (!history[propertyName] || typeof(history[propertyName]) !== 'object') {
+		  } else {
+			  if (!history[propertyName] || typeof(history[propertyName]) !== 'object') {
 		  		history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
 		  		var childHistory = {}
 		  		var childModified = compareJson(obj[propertyName], childHistory, commit)

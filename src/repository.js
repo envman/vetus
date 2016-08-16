@@ -144,7 +144,7 @@ module.exports = function(path) {
       commit: commit,
       jsonLog: jsonLog,
       log: log,
-      init:init,
+      init: init,
       pull: pull,
       push: push,
       addAll: addAll,
