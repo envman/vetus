@@ -211,7 +211,7 @@ module.exports = function(options) {
   var checkUserGit = function(callback) {
     gitExists(userroot, function(userExists) {
       if (!userExists) {
-        repo.clone(bareroot ,function() {
+        repo.clone(bareroot, function() {
           repo.config('user.name "' + user + '"', function() {
             repo.config('user.email ' + email, function() {
               callback(userExists)
@@ -329,7 +329,7 @@ module.exports = function(options) {
     load: load,
     save: save,
     createBranch: createBranch,
-    history:history,
+    history: history,
     merge: merge,
     branchList: branchList
   }
