@@ -28,10 +28,9 @@ describe('When multiple users are using the system', function() {
     framework.collection({name: 'test'})
       .then(c => framework.save(c, data))
       .then(c => framework.collection({name: 'test', user: 'rob'}))
-      .then(c => framework.load())
+      .then(c => framework.load(c))
       .then(c => testData = c.data)
       .then(c => done())
-
   })
 
   after(function() {
