@@ -4,6 +4,7 @@ var path = require('path')
 var rimraf = require('rimraf').sync
 
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+var framework = new require('./test-framework')
 
 var vetus = require('./../app')({ path: testDirectory })
 
@@ -18,19 +19,19 @@ describe('When multiple users are using the system', function() {
 
     fs.mkdirSync(testDirectory)
 
-    vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'first' }
-      saveCollection.save('commit', function(err) {
+    var data = {
+      first: {
+        name: 'first'
+      }
+    }
 
-        vetus.collection({name: 'test', user: 'rob'}, function(collection) {
+    framework.collection({name: 'test'})
+      .then(c => framework.save(c, data))
+      .then(c => framework.collection({name: 'test', user: 'rob'}))
+      .then(c => framework.load())
+      .then(c => testData = c.data)
+      .then(c => done())
 
-          collection.load(function() {
-            testData = collection.data
-            done()
-          })
-        })
-      })
-    })
   })
 
   after(function() {
