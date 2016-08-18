@@ -32,7 +32,6 @@ describe('Branching tests', function() {
     framework.collection({name: 'test'})
       .then(c => framework.save(c, data1))
       .then(c => framework.createBranch(c, 'dev'))
-      // .then(c => framework.load())
       .then(c => framework.collection({name: 'test', branch: 'dev'}))
       .then(c => framework.save(c, data2))
       .then(c => framework.collection({name: 'test', branch: 'dev'}))
