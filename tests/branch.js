@@ -46,7 +46,7 @@ describe('Branching tests', function() {
   })
 
   after(function() {
-    // rimraf(testDirectory)
+    rimraf(testDirectory)
   })
 
   it('Master branch created successfully & unmodified', function(done) {
