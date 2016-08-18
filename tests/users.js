@@ -19,27 +19,19 @@ describe('When multiple users are using the system', function() {
 
     fs.mkdirSync(testDirectory)
 
+    var data = {
+      first: {
+        name: 'first'
+      }
+    }
+
     framework.collection({name: 'test'})
-      .then(c => c.data.first = {name: 'first'})
-      .then(c => c.save('commit'))
+      .then(c => framework.save(c, data))
       .then(c => framework.collection({name: 'test', user: 'rob'}))
-      .then(c => c.load())
-      .then(c => testData = c.collection.data)
+      .then(c => framework.load())
+      .then(c => testData = c.data)
       .then(c => done())
 
-    vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = {name: 'first'}
-      saveCollection.save('commit', function(err) {
-
-        vetus.collection({name: 'test', user: 'rob'}, function(collection) {
-
-          collection.load(function() {
-            testData = collection.data
-            done()
-          })
-        })
-      })
-    })
   })
 
   after(function() {

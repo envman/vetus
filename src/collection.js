@@ -69,7 +69,7 @@ module.exports = function(options) {
         if (err) {
           repo.merge(" --abort", function() {
             console.log("Merge conflict : ", output)
-            resolveConflict(fromBranch,callback)
+            resolveConflict(fromBranch, callback)
           })
         } else {
           callback()
