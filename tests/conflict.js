@@ -19,6 +19,9 @@ describe('(Basic) Conflicts', function() {
 
     fs.mkdirSync(testDirectory)
 
+    framework.collection({name: 'test'})
+      
+
     vetus.collection({name: 'test'}, function(saveCollection) {
       saveCollection.data.first = { name: 'first' }
       saveCollection.save('commit', function(err) {

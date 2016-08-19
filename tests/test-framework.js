@@ -70,15 +70,11 @@ module.exports.save = function(collection, data) {
   })
 }
 
-module.exports.load = function(opts) {
+module.exports.load = function(collection) {
   return new Promise((done, err) => {
-    opts = opts || {}
-    opts.name = opts.name || 'test'
 
-    vetus.collection(opts, function(collection) {
-      collection.load(function() {
-        done(collection)
-      })
+    collection.load(function() {
+      done(collection)
     })
   })
 }
@@ -88,6 +84,14 @@ module.exports.history = function(collection) {
 
     collection.history(function(history) {
       done(history)
+    })
+  })
+}
+
+module.exports.createBranch = function(collection, newbranch) {
+  return new Promise((done, err) => {
+    collection.createBranch(newbranch, function() {
+      done(collection)
     })
   })
 }

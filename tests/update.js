@@ -27,11 +27,11 @@ describe('Updating a collection', function() {
       first: {name: 'updated'}
     }
 
-    framework.collection({})
+    framework.collection()
       .then(c => framework.save(c, data))
-      .then(c => framework.load({}))
+      .then(c => framework.load(c))
       .then(c => framework.save(c, updated))
-      .then(c => framework.load({}))
+      .then(c => framework.load(c))
       .then(c => testData = c.data)
       .then(c => done())
   })
