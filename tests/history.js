@@ -39,7 +39,7 @@ describe('Repository history testing', function() {
       .then(c => framework.save(c, second))
       .then(c => framework.collection({user: 'jamie'}))
       .then(c => framework.save(c, third))
-      .then(c => framework.load({}))
+      .then(c => framework.load(c))
       .then(c => framework.history(c))
       .then(h => historyObj = h)
       .then(c => done())
