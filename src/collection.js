@@ -87,7 +87,6 @@ module.exports = function(options) {
               repo.checkout(newbranch, function() {
                 repo.push(" origin " + newbranch, function() {
                   console.log("Branch created & pushed to origin")
-                  branch = newbranch
                   callback()
                 })
               })
