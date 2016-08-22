@@ -1,4 +1,4 @@
-var assert = require('chai').assert
+var assert = require('./assert')
 var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
@@ -6,6 +6,7 @@ var rimraf = require('rimraf').sync
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
 var vetus = require('./../app')({ path: testDirectory })
+var framework = require('./test-framework')
 
 describe('(Basic) Conflicts', function() {
 
@@ -18,6 +19,34 @@ describe('(Basic) Conflicts', function() {
     }
 
     fs.mkdirSync(testDirectory)
+
+    var data1 = {
+      first: { name: 'first' }
+    }
+
+    var data2 = {
+      first: { name: 'updated' }
+    }
+
+    var data3 = {
+      first: { name: 'conflict' },
+      second: { name: 'second' }
+    }
+
+    /*framework.collection({name: 'test'}) //create a collection named test
+      .then(c => framework.save(c, data1)) //save collection 'master/test' with {first: {name: 'first'}}
+      .then(c => framework.createBranch(c, 'dev')) //create a new branch 'dev'
+      // .then(c => framework.collection({name: 'test', branch: 'dev'})) //create a new collection named test on branch 'dev'
+      .then(c => framework.save(c, data2)) //save collection 'dev/test' with {first: {name: 'updated'}}
+      .then(c => framework.save(c, data3)) //save collection 'dev/test' with {first: {name: 'conflict'}, second: {name: 'second'}}
+      .then(c => framework.merge(c, 'master')) //merge master with branch 'dev'
+      // .then(c => framework.collection({name: 'test', branch: 'dev'})) //create a new
+      // .then(c => framework.load(c))
+      .then(c => branchData = c.data)
+      .then(c => framework.collection({name: 'test'}))
+      .then(c => framework.load(c))
+      .then(c => masterData = c.data)
+      .then(c => done())*/
 
     vetus.collection({name: 'test'}, function(saveCollection) {
       saveCollection.data.first = { name: 'first' }
@@ -32,7 +61,7 @@ describe('(Basic) Conflicts', function() {
                   saveCollection.data.second = { name: 'second' }
                   saveCollection.save('commit2', function(err) {
                     collection.merge('master', function(err) {
-                      vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
+                      vetus.collection({name: 'test', branch: 'dev'}, function(branchCollection) {
                         branchCollection.load(function() {
                           branchData = branchCollection.data
                           vetus.collection({name: 'test'}, function(masterCollection) {
@@ -54,20 +83,20 @@ describe('(Basic) Conflicts', function() {
     })
   })
 
-  after(function() {
-    rimraf(testDirectory)
-  })
+  // after(function() {
+  //   rimraf(testDirectory)
+  // })
 
   it('Dev and Master not merged', function(done) {
     assert(masterData.first.name !== branchData.first.name)
     done()
   })
   it('Master keeps changes', function(done) {
-    assert(masterData.second.name)
+    assert(masterData.second.name, 'incorrect value')
     done()
   })
   it('Dev has not changed', function(done) {
-    assert(!branchData.second)
+    assert(!branchData.second, 'incorrect value: ' + branchData.second.name)
     done()
   })
 })
