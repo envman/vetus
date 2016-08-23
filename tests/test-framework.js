@@ -105,6 +105,7 @@ module.exports.merge = function(collection, fromBranch) {
     })
   })
 }
+<<<<<<< HEAD
 
 module.exports.branchList = function(collection) {
   return new Promise((done, err) => {
@@ -114,3 +115,5 @@ module.exports.branchList = function(collection) {
     })
   })
 }
+=======
+>>>>>>> dev
