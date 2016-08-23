@@ -30,7 +30,6 @@ describe('(Basic) Merging', function() {
       .then(c => framework.save(c, data2))
       .then(c => framework.collection({name: 'test'}))
       .then(c => framework.merge(c, 'dev'))
-      // .then(c => framework.collection({name: 'test'}))
       .then(c => framework.load(c))
       .then(c => masterData = c.data)
       .then(c => done())
