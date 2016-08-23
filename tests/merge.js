@@ -6,10 +6,10 @@ var rimraf = require('rimraf').sync
 var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
 var vetus = require('./../app')({ path: testDirectory })
+var framework = new require('./test-framework')
 
 describe('(Basic) Merging', function() {
 
-  var branchData
   var masterData
   var masterLog
 
@@ -20,38 +20,18 @@ describe('(Basic) Merging', function() {
 
     fs.mkdirSync(testDirectory)
 
-    vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'first' }
-      saveCollection.save('added first', function(err) {
-        saveCollection.createBranch('dev', function() {
-          vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
-            collection.load(function() {
-              collection.data.first = { name: 'updated' }
-              collection.save('updated first in dev', function(err) {
-                saveCollection.load(function() {
-                  saveCollection.data.second = { name: 'second' }
-                  saveCollection.save('added second to master', function(err) {
-                    saveCollection.merge('dev', function(err) {
-                      vetus.collection({name: 'test', branch:'dev'}, function(branchCollection) {
-                        branchCollection.load(function() {
-                          branchData = branchCollection.data
-                          vetus.collection({name: 'test'}, function(masterCollection) {
-                            masterCollection.load(function() {
-                              masterData = masterCollection.data
-                              done()
-                            })
-                          })
-                        })
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          })
-        })
-      })
-    })
+    var data1 = { first: { name : 'first' } }
+    var data2 = { first: { name : 'updated' } }
+
+    framework.collection({name: 'test'})
+      .then(c => framework.save(c, data1))
+      .then(c => framework.createBranch(c, 'dev'))
+      .then(c => framework.save(c, data2))
+      .then(c => framework.collection({name: 'test'}))
+      .then(c => framework.merge(c, 'dev'))
+      .then(c => framework.load(c))
+      .then(c => masterData = c.data)
+      .then(c => done())
   })
 
   after(function() {
@@ -59,17 +39,7 @@ describe('(Basic) Merging', function() {
   })
 
   it('Dev and Master merged successfully', function(done) {
-    assert(masterData.first.name === branchData.first.name)
-    done()
-  })
-
-  it('Master keeps changes', function(done) {
-    assert(masterData.second.name)
-    done()
-  })
-
-  it('Dev has not changed', function(done) {
-    assert(!branchData.second)
+    assert(masterData.first.name === 'updated')
     done()
   })
 })

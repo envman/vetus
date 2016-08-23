@@ -41,7 +41,6 @@ describe('Branching tests', function() {
       .then(c => framework.load(c))
       .then(c => masterData = c.data)
       .then(c => done())
-
   })
 
   after(function() {
