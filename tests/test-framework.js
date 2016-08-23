@@ -90,7 +90,17 @@ module.exports.history = function(collection) {
 
 module.exports.createBranch = function(collection, newbranch) {
   return new Promise((done, err) => {
+
     collection.createBranch(newbranch, function() {
+      done(collection)
+    })
+  })
+}
+
+module.exports.merge = function(collection, fromBranch) {
+  return new Promise((done, err) => {
+
+    collection.merge(fromBranch, function() {
       done(collection)
     })
   })
