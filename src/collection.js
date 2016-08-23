@@ -82,11 +82,9 @@ module.exports = function(options) {
     preCommand(function(oldBranchExists) {
       repo.branchExists(newbranch, function(branchExists){
         if (!branchExists) {
-          repo.checkout(branch, function() {// unnecessary since preCommand already moves us into branch
+          repo.checkout(branch, function() { // unnecessary since preCommand already moves us into branch
             repo.branch(newbranch, function() {
               repo.checkout(newbranch, function() {
-                //branch = newbranch
-
                 repo.push(" origin " + newbranch, function() {
                   branch = newbranch
 

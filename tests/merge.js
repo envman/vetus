@@ -10,7 +10,6 @@ var framework = new require('./test-framework')
 
 describe('(Basic) Merging', function() {
 
-  // var branchData
   var masterData
   var masterLog
 
