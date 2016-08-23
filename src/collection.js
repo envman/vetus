@@ -178,6 +178,7 @@ module.exports = function(options) {
       if (branchExists) {
         repo.checkout(newbranch, function() {
           branch = newbranch
+
           callback(branchExists)
         })
       } else {
