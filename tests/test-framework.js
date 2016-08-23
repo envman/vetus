@@ -114,3 +114,12 @@ module.exports.branchList = function(collection) {
     })
   })
 }
+
+module.exports.changeBranch = function(collection, newbranch) {
+  return new Promise((done, err) => {
+
+    collection.changeBranch(newbranch, function() {
+      done(collection)
+    })
+  })
+}

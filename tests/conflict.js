@@ -33,54 +33,58 @@ describe('(Basic) Conflicts', function() {
       second: { name: 'second' }
     }
 
-    /*framework.collection({name: 'test'}) //create a collection named test
-      .then(c => framework.save(c, data1)) //save collection 'master/test' with {first: {name: 'first'}}
-      .then(c => framework.createBranch(c, 'dev')) //create a new branch 'dev'
-      // .then(c => framework.collection({name: 'test', branch: 'dev'})) //create a new collection named test on branch 'dev'
-      .then(c => framework.save(c, data2)) //save collection 'dev/test' with {first: {name: 'updated'}}
-      .then(c => framework.save(c, data3)) //save collection 'dev/test' with {first: {name: 'conflict'}, second: {name: 'second'}}
-      .then(c => framework.merge(c, 'master')) //merge master with branch 'dev'
-      // .then(c => framework.collection({name: 'test', branch: 'dev'})) //create a new
-      // .then(c => framework.load(c))
+    framework.collection({name: 'test'})
+      .then(c => framework.save(c, data1))
+      .then(c => framework.createBranch(c, 'dev'))
+      .then(c => framework.)
+
+    framework.collection({name: 'test'})
+      .then(c => framework.save(c, data1))
+      .then(c => framework.createBranch(c, 'dev'))
+      .then(c => framework.save(c, data2))
+      .then(c => framework.save(c, data3))
+      .then(c => framework.merge(c, 'master'))
+      .then(c => framework.collection({name: 'test', branch: 'dev'}))
+      .then(c => framework.load(c))
       .then(c => branchData = c.data)
       .then(c => framework.collection({name: 'test'}))
       .then(c => framework.load(c))
       .then(c => masterData = c.data)
-      .then(c => done())*/
+      .then(c => done())
 
-    vetus.collection({name: 'test'}, function(saveCollection) {
-      saveCollection.data.first = { name: 'first' }
-      saveCollection.save('commit', function(err) {
-        saveCollection.createBranch('dev', function() {
-          vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
-            collection.load(function() {
-              collection.data.first = { name: 'updated' }
-              collection.save('commit', function(err) {
-                saveCollection.load(function() {
-                  saveCollection.data.first = { name: 'conflict' }
-                  saveCollection.data.second = { name: 'second' }
-                  saveCollection.save('commit2', function(err) {
-                    collection.merge('master', function(err) {
-                      vetus.collection({name: 'test', branch: 'dev'}, function(branchCollection) {
-                        branchCollection.load(function() {
-                          branchData = branchCollection.data
-                          vetus.collection({name: 'test'}, function(masterCollection) {
-                            masterCollection.load(function() {
-                              masterData = masterCollection.data
-                              done()
-                            })
-                          })
-                        })
-                      })
-                    })
-                  })
-                })
-              })
-            })
-          })
-        })
-      })
-    })
+    // vetus.collection({name: 'test'}, function(saveCollection) {
+    //   saveCollection.data.first = { name: 'first' }
+    //   saveCollection.save('commit', function(err) {
+    //     saveCollection.createBranch('dev', function() {
+    //       vetus.collection({name: 'test', branch: 'dev'}, function(collection) {
+    //         collection.load(function() {
+    //           collection.data.first = { name: 'updated' }
+    //           collection.save('commit', function(err) {
+    //             saveCollection.load(function() {
+    //               saveCollection.data.first = { name: 'conflict' }
+    //               saveCollection.data.second = { name: 'second' }
+    //               saveCollection.save('commit2', function(err) {
+    //                 collection.merge('master', function(err) {
+    //                   vetus.collection({name: 'test', branch: 'dev'}, function(branchCollection) {
+    //                     branchCollection.load(function() {
+    //                       branchData = branchCollection.data
+    //                       vetus.collection({name: 'test'}, function(masterCollection) {
+    //                         masterCollection.load(function() {
+    //                           masterData = masterCollection.data
+    //                           done()
+    //                         })
+    //                       })
+    //                     })
+    //                   })
+    //                 })
+    //               })
+    //             })
+    //           })
+    //         })
+    //       })
+    //     })
+    //   })
+    // })
   })
 
   // after(function() {
