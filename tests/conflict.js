@@ -3,7 +3,7 @@ var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
 
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+var testDirectory = path.join(__dirname, '..', '..', 'playground')
 
 var vetus = require('./../app')({ path: testDirectory })
 var framework = require('./test-framework')

@@ -15,7 +15,6 @@ var updateJson = function(obj, history) {
  	compareJson(obj, history, commit)
 }
 
-// Compares two json files with optional historyjson, returning the difference as a history JSON w/ commit info
 var compareJson = function(obj, history, commit) {
 
   var modified = false
@@ -23,7 +22,7 @@ var compareJson = function(obj, history, commit) {
   for (var propertyName in obj) {
   	var historyProperty = '$hist_' + propertyName
 
-    // If the attribute doesnt exist in the old Json OR the old json isnt an object..
+		// base case: if we are at leaf
     if (typeof(obj[propertyName]) != 'object') {
       // simple type
     	if (!history[propertyName]) {
@@ -31,15 +30,17 @@ var compareJson = function(obj, history, commit) {
 		  	history[propertyName] = obj[propertyName]
 		  	modified = true
 		  } else if (typeof(obj[propertyName]) != typeof(history[propertyName])) {
+		  	history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date + ', Type changed'
 				history[propertyName] = obj[propertyName]
-		  	history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date + 'Type changed'
 		  	modified = true
 			} else if (obj[propertyName] != history[propertyName]) {
 	  		history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date
 	  		history[propertyName] = obj[propertyName]
 	  		modified = true
 	  	}
+		// else we check further down the tree
 		} else {
+			// obj is not at leaf, history is at leaf
 		  if (!history[propertyName] || typeof(history[propertyName]) !== 'object') {
 				history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
 				var childHistory = {}
@@ -50,6 +51,7 @@ var compareJson = function(obj, history, commit) {
 
 		  	modified = true
 				continue
+			// obj is not at leaf, history is not at leaf
 		  } else {
 		  	var childModified = compareJson(obj[propertyName], history[propertyName], commit)
 		  	modified = childModified
