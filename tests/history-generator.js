@@ -125,6 +125,28 @@ describe('When generating history', function() {
 
   var history6 = historyGenerator(objects6)
 
+  var objects7 = [
+    {
+      name: 'first',
+      arr: [1, 2, 3],
+      $commit: {
+        author: 'jamie',
+        date: '1/1/12'
+      },
+    },
+
+    {
+      name: 'second',
+      arr: [1, 2, 4],
+      $commit: {
+        author: 'rob',
+        date: '2/2/12'
+      },
+    },
+  ]
+
+  var history7 = historyGenerator(objects7)
+
   it('latest value shown', function() {
     assert(history1.name === 'second')
   })
@@ -183,6 +205,11 @@ describe('When generating history', function() {
     assert(history6.$hist_name === 'Modified by rob at 2/2/12', '$hist_name incorrect value: ' + history6.$hist_name)
     assert(history6.name.$hist_subname, '$hist_name node missing')
     assert(history6.name.$hist_subname === 'Modified by rob at 2/2/12, Type changed', '$hist_name incorrect value: ' + history6.name.$hist_name)
+  })
+
+  it('Array changed', function() {
+    assert(history7.$hist_name, '$hist_name node missing')
+    assert(history7.$hist_array_arr === 'Updated by rob at 2/2/12', '$hist_name incorrect value: ' + history7.$hist_name)
   })
 
 })

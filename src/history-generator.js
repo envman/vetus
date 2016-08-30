@@ -21,7 +21,7 @@ var compareJson = function(obj, history, commit) {
 
   for (var propertyName in obj) {
   	var historyProperty = '$hist_' + propertyName
-		var arrayProperty = '$hist_array' + propertyName
+		var arrayProperty = '$hist_array_' + propertyName
 
 		// split into cases: if array
 		if (Array.isArray(obj[propertyName])){
@@ -33,16 +33,12 @@ var compareJson = function(obj, history, commit) {
 
 			//check if we are at leaf
 			for (var i in arr_curr) {
-				if (typeof(arr_curr) === 'object' || Array.isArray(arr_curr[i])) {
+				if (typeof(arr_curr[i]) === 'object' || Array.isArray(arr_curr[i])) {
 					leaf = false
 				}
 			}
 
 			if (leaf === true) {
-				history[arrayProperty] = "Updated by " + commit.author + " at " + commit.date
-				history[propertyName] = obj[propertyName]
-				modified = true
-			} else {
 
 				// since the list might be jumbled, we loop over both, and check if they have the same elements
 				for (var index_curr in arr_curr) {
@@ -53,14 +49,27 @@ var compareJson = function(obj, history, commit) {
 					}
 				}
 
-				// if we don't have the same in obj and history, else we let it pass, or if history not the same as obj
-				if (arr_curr.length !== arr_hist.length || hits != arr_curr.length ||  !Array.isArray(arr_hist)) {
-					history[arrayProperty] = "Updated by " + commit.author + " at " + commit.date
-					history[propertyName] = obj[propertyName]
+				console.log(hits)
+				console.log(arr_curr.length)
 
+				if (hits !== arr_curr.length) {
+					history[arrayProperty] = "Updated by " + commit.author + " at " + commit.date
+					console.log(history[arrayProperty])
+					history[propertyName] = obj[propertyName]
 					modified = true
 				}
-
+			} else {
+				// if we don't have the same in obj and history, else we let it pass, or if history not the same as obj
+				// if (arr_curr.length !== arr_hist.length) {
+				// 	history[arrayProperty] = "Updated by " + commit.author + " at " + commit.date
+				// 	history[propertyName] = obj[propertyName]
+				//
+				// 	var childModified = compareJson(obj[propertyName], history[propertyName], commit)
+				//
+				// 	modified = true
+				// } else {
+				//
+				// }
 			}
 		} else {
 		// base case: if we are at leaf, need to include array here
