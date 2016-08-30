@@ -28,29 +28,42 @@ var compareJson = function(obj, history, commit) {
 			arr_curr = obj[propertyName]
 			arr_hist = history[propertyName]
 
-			l = arr_curr.length
-			k = 0
+			var hits = 0
+			var leaf = true
 
-
-	    if (arr_curr.length !== arr_hist.length || !Array.isArray(arr_hist)) {
-				arrayProperty = "Updated by " + commit.author + " at " + commit.date
-				history[propertyName] = obj[propertyName]
-				modified = true
-			}
-
-			// since the list might be jumbled, we loop over both, and check if they have the same elements
-			for (var index_curr in arr_curr) {
-				for (var index_hist in arr_hist) {
-					if (arr_curr[index_curr] === arr_hist[index_hist]) {
-						k += 1
-					}
+			//check if we are at leaf
+			for (var i in arr_curr) {
+				if (typeof(arr_curr) === 'object' || Array.isArray(arr_curr[i])) {
+					leaf = false
 				}
 			}
 
-			if
-		// else in first case
+			if (leaf === true) {
+				history[arrayProperty] = "Updated by " + commit.author + " at " + commit.date
+				history[propertyName] = obj[propertyName]
+				modified = true
+			} else {
+
+				// since the list might be jumbled, we loop over both, and check if they have the same elements
+				for (var index_curr in arr_curr) {
+					for (var index_hist in arr_hist) {
+						if (arr_curr[index_curr] === arr_hist[index_hist]) {
+							hits += 1
+						}
+					}
+				}
+
+				// if we don't have the same in obj and history, else we let it pass, or if history not the same as obj
+				if (arr_curr.length !== arr_hist.length || hits != arr_curr.length ||  !Array.isArray(arr_hist)) {
+					history[arrayProperty] = "Updated by " + commit.author + " at " + commit.date
+					history[propertyName] = obj[propertyName]
+
+					modified = true
+				}
+
+			}
 		} else {
-		// base case: if we are at leaf
+		// base case: if we are at leaf, need to include array here
 	    if (typeof(obj[propertyName]) != 'object') {
 	      // simple type
 	    	if (!history[propertyName]) {
