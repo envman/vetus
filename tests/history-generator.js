@@ -184,5 +184,4 @@ describe('When generating history', function() {
     assert(history6.name.$hist_subname, '$hist_name node missing')
     assert(history6.name.$hist_subname === 'Modified by rob at 2/2/12, Type changed', '$hist_name incorrect value: ' + history6.name.$hist_name)
   })
-
 })
