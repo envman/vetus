@@ -17,7 +17,7 @@ describe('When generating history', function() {
       recursive: [ { name: 'second' } ],
       $commit: {
         author: 'jamie',
-        date: '1/1/12'
+        date: '3/3/13'
       }
     },
   ]
@@ -28,7 +28,7 @@ describe('When generating history', function() {
     assert(history.add)
   })
 
-  it('contains array', function() {
+  it('Array history item added', function() {
     assert(history.$hist_add === '??')
   })
 
@@ -45,8 +45,9 @@ describe('When generating history', function() {
   })
 
   it('Adds history recursively for array items', function() {
-    assert.value(history.recursive[0]['$hist_name'], 'Modified by jamie at 1/1/12', 'Recursive history')
+    assert.value(history.recursive[0]['$hist_name'], 'Modified by jamie at 3/3/13', 'Recursive history')
   })
+
 
   // Reordered array items
   // deleted array items

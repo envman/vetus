@@ -30,7 +30,7 @@ var compareJson = function(obj, history, commit) {
 				history['$hist_' + propertyName] = '??'
 			}
 
-			for (let index in obj[propertyName]) {	
+			for (let index in obj[propertyName]) {
 				let item = obj[propertyName][index]
 
 				if (history[propertyName].length <= index) {
