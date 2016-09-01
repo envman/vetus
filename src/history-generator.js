@@ -27,23 +27,23 @@ var compareJson = function(obj, history, commit) {
 		if (Array.isArray(obj[propertyName])) {
 			if (!history[propertyName]) {
 				history[propertyName] = []
-				history['$hist_' + propertyName] = '??'
+				history['$hist_' + propertyName] = 'Created by ' + commit.author + ' at ' + commit.date
 			}
 
 			for (let index in obj[propertyName]) {
 				let item = obj[propertyName][index]
 
 				if (history[propertyName].length <= index) {
-					console.log('create hist')
-					let historyItem = { $hist_arr: 'Created..' }
+					let historyItem = {}
+					historyItem['$hist_' + item] = 'Created by ' + commit.author + ' at ' + commit.date
 					compareJson(item, historyItem, commit)
 					history[propertyName].push(historyItem)
 				} else {
-					console.log('read hist')
 					let historyItem = history[propertyName][index]
 					var itemModified = compareJson(item, historyItem, commit)
 					if (itemModified) {
-						historyItem['$hist_arr'] = 'Updated..'
+						let hist_arr = '$hist_' + item
+						historyItem[hist_arr] = 'Updated by ' + commit.author + ' at ' + commit.date
 					}
 				}
 			}
