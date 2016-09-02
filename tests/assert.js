@@ -10,5 +10,5 @@ module.exports.value = function(actual, expected, message, obj) {
     message += '\n' + JSON.stringify(obj, null, 2)
   }
 
-  assert(actual === expected, message)
+  assert(actual === expected, message + 'Expected: ' + expected + ' Found: ' + actual)
 }
