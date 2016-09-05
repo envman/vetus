@@ -2,7 +2,9 @@ module.exports = function(objects, history) {
 	history = history || {}
 
 	for (var obj of objects) {
+		console.log(obj)
 		updateJson(obj, history)
+		console.log(history)
 	}
 
 	return history
@@ -17,13 +19,15 @@ var updateJson = function(obj, history) {
 
 var compareJson = function(obj, history, commit) {
 
+	console.log('obj', obj)
+
   var modified = false
 
-  for (var propertyName in obj) {
-		if (propertyName.startsWith('$')) {
-			continue
-		}
-		console.log('Loop at propertyName: ', propertyName, ' which has attribute: ', obj[propertyName])
+	let filtered = Object.getOwnPropertyNames(obj)
+		.filter(p => p.indexOf('$') < 0)
+
+  for (var propertyName of filtered) {
+		
   	var historyProperty = '$hist_' + propertyName
 
 		// split into cases: if array
@@ -31,13 +35,6 @@ var compareJson = function(obj, history, commit) {
 			if (!history[propertyName]) {
 				history[propertyName] = []
 				history[historyProperty] = 'Created by ' + commit.author + ' at ' + commit.date
-			} else {
-				console.log('In else branch, propertyName: ', propertyName, ', obj[propertyName]: ',  obj[propertyName],  ', entering compareJson method')
-				var itemModified = compareJson(history[propertyName], obj[propertyName], commit)
-				console.log('Outside of compareJson')
-				if (itemModified) {
-					history[historyProperty] = 'Updated by ' + commit.author + ' at ' + commit.date
-				}
 			}
 
 			for (let index in obj[propertyName]) {

@@ -7,7 +7,7 @@ describe('When generating history', function() {
     {
       add: [],
       create: [],
-      create2: [],
+      delete: [],
       recursive: [{ name: 'first' }],
       $commit: {
         author: 'rob',
