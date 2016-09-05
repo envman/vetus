@@ -28,7 +28,6 @@ describe('When generating history', function() {
   var history = historyGenerator(objects)
 
   it('contains array add', function() {
-    console.log(history)
     assert(history.add)
   })
 
@@ -41,7 +40,7 @@ describe('When generating history', function() {
   })
 
   it('Array history item added', function() {
-    assert(history.$hist_add === 'Updated by jamie at 3/3/13')
+    assert(history.$hist_add === 'Modified by jamie at 3/3/13')
   })
 
   it('Array history item created', function() {
@@ -49,7 +48,7 @@ describe('When generating history', function() {
   })
 
   it('Array history item recursive', function() {
-    assert(history.$hist_recursive === 'Updated by jamie 3/3/13')
+    assert(history.$hist_recursive === 'Modified by jamie at 3/3/13')
   })
 
   it('latest value shown', function() {
@@ -57,11 +56,11 @@ describe('When generating history', function() {
   })
 
   it('Adds added commit', function() {
-    assert(history.add[0]['$hist_arr'] === 'Updated by jamie at 3/3/13')
+    assert(history.add[0].$hist_array === 'Updated by jamie at 3/3/13')
   })
 
   it('Adds added commit (array)', function() {
-    assert(history.add[0]['$hist_arr'] === 'Updated by jamie at 3/3/13')
+    assert(history.add[0].$hist_array === 'Updated by jamie at 3/3/13')
   })
 
   it('Processes array items recursively', function() {
