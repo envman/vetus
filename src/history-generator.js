@@ -20,14 +20,24 @@ var compareJson = function(obj, history, commit) {
   var modified = false
 
   for (var propertyName in obj) {
+		if (propertyName.startsWith('$')) {
+			continue
+		}
+		console.log('Loop at propertyName: ', propertyName, ' which has attribute: ', obj[propertyName])
   	var historyProperty = '$hist_' + propertyName
-		var arrayProperty = '$hist_array_' + propertyName
 
 		// split into cases: if array
 		if (Array.isArray(obj[propertyName])) {
 			if (!history[propertyName]) {
 				history[propertyName] = []
-				history['$hist_' + propertyName] = 'Created by ' + commit.author + ' at ' + commit.date
+				history[historyProperty] = 'Created by ' + commit.author + ' at ' + commit.date
+			} else {
+				console.log('In else branch, propertyName: ', propertyName, ', obj[propertyName]: ',  obj[propertyName],  ', entering compareJson method')
+				var itemModified = compareJson(history[propertyName], obj[propertyName], commit)
+				console.log('Outside of compareJson')
+				if (itemModified) {
+					history[historyProperty] = 'Updated by ' + commit.author + ' at ' + commit.date
+				}
 			}
 
 			for (let index in obj[propertyName]) {
@@ -35,21 +45,21 @@ var compareJson = function(obj, history, commit) {
 
 				if (history[propertyName].length <= index) {
 					let historyItem = {}
-					historyItem['$hist_' + item] = 'Created by ' + commit.author + ' at ' + commit.date
+					historyItem['$hist_array'] = 'Created by ' + commit.author + ' at ' + commit.date
 					compareJson(item, historyItem, commit)
 					history[propertyName].push(historyItem)
 				} else {
 					let historyItem = history[propertyName][index]
 					var itemModified = compareJson(item, historyItem, commit)
 					if (itemModified) {
-						let hist_arr = '$hist_' + item
-						historyItem[hist_arr] = 'Updated by ' + commit.author + ' at ' + commit.date
+						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
 					}
 				}
 			}
 		} else {
 		// base case: if we are at leaf, need to include array here
 	    if (typeof(obj[propertyName]) != 'object') {
+				// console.log('In object branch, obj[propertyName]: ', obj[propertyName], ', propertyName: ', propertyName)
 	      // simple type
 	    	if (!history[propertyName]) {
 			  	history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
