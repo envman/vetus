@@ -14,7 +14,48 @@ var updateJson = function(obj, history) {
  	var commit = obj.$commit
  	delete obj.$commit
 
+	deleteJson(obj, history, commit)
  	compareJson(obj, history, commit)
+}
+
+var deleteJson = function(obj, history, commit) {
+
+	var deleted = false
+
+	if (history === {}) {
+		return deleted
+	}
+
+	if (Array.isArray(history)) {
+		// need to sort out, not implemented for arrays
+		for (var index in history) {
+			deleteJson(obj[index], history[index], commit)
+		}
+	} else {
+
+	  var hist_keys = Object.keys(history).sort()
+		var obj_keys = Object.keys(obj).sort()
+		var intersect_keys_set = new Set([...hist_keys,...obj_keys])
+		var intersect_keys = [...intersect_keys_set].sort()
+
+		for (var key in hist_keys) {
+			if (intersect_keys.indexOf(key) == -1) {
+				// item has been removed
+				deleted = true
+				delete history.key
+				delete history['$hist_' + key]
+			}
+			// need to filter so that we call deleteJson recursively if still in tree, stops if at leaf
+			// loop over all of the keys
+			for (var key in history) {
+				if (typeof(obj[key]) == 'object') {
+					deleteJson(obj[key], history[key], commit)
+				} else {
+					return deleted
+				}
+			}
+		}
+	}
 }
 
 var compareJson = function(obj, history, commit) {

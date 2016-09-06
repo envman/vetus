@@ -71,15 +71,17 @@ describe('When generating history', function() {
     assert.value(history.recursive[0]['$hist_name'], 'Modified by jamie at 3/3/13', 'Recursive history')
   })
 
+  it('Deleted items handled correctly', function() {
+    assert(!history.hasOwnProperty('delete') && !history.hasOwnProperty('$hist_delete'))
+  })
+
   it('Reordered array items handled correctly', function() {
     assert(false)
   })
 
-  it('Deleted array items handled correctly', function() {
-    assert(false)
-  })
 
   // Reordered array items
   // deleted array items
   // New item with id
+  // Handle array leafs
 })
