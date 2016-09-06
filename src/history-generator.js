@@ -2,11 +2,10 @@ module.exports = function(objects, history) {
 	history = history || {}
 
 	for (var obj of objects) {
-		console.log(obj)
 		updateJson(obj, history)
-		console.log(history)
 	}
 
+	console.log(history)
 	return history
 }
 
@@ -19,40 +18,39 @@ var updateJson = function(obj, history) {
 }
 
 var deleteJson = function(obj, history, commit) {
+	/* Assumes that the tree maintains its obj-array-obj-array-... structure
+	 and never change into different things and also ends in objects
+	 */
 
-	var deleted = false
-
-	if (history === {}) {
-		return deleted
-	}
+  var deleted = false
 
 	if (Array.isArray(history)) {
-		// need to sort out, not implemented for arrays
+		// Might not work if javascript can't compare equality of objects
 		for (var index in history) {
-			deleteJson(obj[index], history[index], commit)
+			if (obj.indexOf(history[index]) === -1) {
+				history.splice(index, 1)
+			}	else {
+				deleteJson(obj[index], history[index], commit)
+			}
 		}
 	} else {
 
-	  var hist_keys = Object.keys(history).sort()
-		var obj_keys = Object.keys(obj).sort()
-		var intersect_keys_set = new Set([...hist_keys,...obj_keys])
-		var intersect_keys = [...intersect_keys_set].sort()
+	  var hist_keys = Object.keys(history)
+			.filter(p => p.indexOf('$') < 0)
+		var obj_keys = Object.keys(obj)
+			.filter(p => p.indexOf('$') < 0)
 
-		for (var key in hist_keys) {
-			if (intersect_keys.indexOf(key) == -1) {
-				// item has been removed
+		for (var key of hist_keys) {
+			if (obj_keys.indexOf(key) === -1) {
 				deleted = true
-				delete history.key
-				delete history['$hist_' + key]
+				delete history[key]
+			  delete history['$hist_' + key]
 			}
-			// need to filter so that we call deleteJson recursively if still in tree, stops if at leaf
-			// loop over all of the keys
-			for (var key in history) {
-				if (typeof(obj[key]) == 'object') {
-					deleteJson(obj[key], history[key], commit)
-				} else {
-					return deleted
-				}
+			
+			if (typeof(obj[key]) === 'object' || Array.isArray(obj[key])) {
+				deleteJson(obj[key], history[key], commit)
+			} else {
+				return deleted
 			}
 		}
 	}
@@ -60,7 +58,7 @@ var deleteJson = function(obj, history, commit) {
 
 var compareJson = function(obj, history, commit) {
 
-	console.log('obj', obj)
+	// console.log('obj', obj)
 
   var modified = false
 
@@ -110,10 +108,7 @@ var compareJson = function(obj, history, commit) {
 				}
 			}
 		} else {
-		// base case: if we are at leaf, need to include array here
 	    if (typeof(obj[propertyName]) != 'object') {
-				// console.log('In object branch, obj[propertyName]: ', obj[propertyName], ', propertyName: ', propertyName)
-	      // simple type
 	    	if (!history[propertyName]) {
 			  	history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
 			  	history[propertyName] = obj[propertyName]
@@ -127,9 +122,7 @@ var compareJson = function(obj, history, commit) {
 		  		history[propertyName] = obj[propertyName]
 		  		modified = true
 		  	}
-			// else we check further down the tree
 			} else {
-				// obj is not at leaf, history is at leaf
 			  if (!history[propertyName] || typeof(history[propertyName]) !== 'object') {
 					history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
 					var childHistory = {}
@@ -140,7 +133,6 @@ var compareJson = function(obj, history, commit) {
 
 			  	modified = true
 					continue
-				// obj is not at leaf, history is not at leaf
 			  } else {
 			  	var childModified = compareJson(obj[propertyName], history[propertyName], commit)
 			  	modified = childModified
