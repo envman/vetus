@@ -6,6 +6,12 @@ describe('When generating history', function() {
   var objects = [
     {
       add: [],
+      // reorder: [
+      //           {one: '1',
+      //           id: '11'},
+      //           {two: '2',
+      //           id: '22'}
+      //          ],
       create: [],
       delete: [],
       recursive: [{ name: 'first' }],
@@ -15,7 +21,13 @@ describe('When generating history', function() {
       }
     },
     {
-      add: [{ id: '1' }],
+      add: [{ up: '1' }],
+      // reorder: [
+      //           {two: '2',
+      //           id: '22'},
+      //           {one: '1',
+      //           id: '11'}
+      //          ],
       create: [],
       recursive: [{ name: 'second' }],
       $commit: {
@@ -52,7 +64,7 @@ describe('When generating history', function() {
   })
 
   it('latest value shown', function() {
-    assert(history.add[0].id === '1')
+    assert(history.add[0].up === '1')
   })
 
   it('Adds added commit', function() {
@@ -75,13 +87,13 @@ describe('When generating history', function() {
     assert(!history.hasOwnProperty('delete') && !history.hasOwnProperty('$hist_delete'))
   })
 
-  it('Reordered array items handled correctly', function() {
-    assert(false)
-  })
+  // it('Reordered array items handled correctly', function() {
+  //   assert(Object.keys(history.reorder[0])[0] === 'one' && Object.keys(history.reorder[1])[0] === 'two')
+  // })
 
 
   // Reordered array items
   // deleted array items
-  // New item with id
+  // New item with id (use: var timestamp = new Date().valueOf())
   // Handle array leafs
 })

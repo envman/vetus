@@ -46,7 +46,7 @@ var deleteJson = function(obj, history, commit) {
 				delete history[key]
 			  delete history['$hist_' + key]
 			}
-			
+
 			if (typeof(obj[key]) === 'object' || Array.isArray(obj[key])) {
 				deleteJson(obj[key], history[key], commit)
 			} else {
@@ -82,21 +82,20 @@ var compareJson = function(obj, history, commit) {
 			for (let index in obj[propertyName]) {
 				let item = obj[propertyName][index]
 
-				if (String(item).startsWith('$')) {
-					continue
-				}
-
-				if (history[propertyName].length <= index) {
-					let historyItem = {}
-					if (created === true) {
+				if (history[propertyName].length - 1 < index) {
+					// this branch creates a new element in history[propertyName]
+					if (created === true){
+						let historyItem = {}
 						historyItem['$hist_array'] = 'Created by ' + commit.author + ' at ' + commit.date
-					}
-					let modified = compareJson(item, historyItem, commit)
-					if (modified && created === false) {
+						compareJson(item, historyItem, commit)
+						history[propertyName].push(historyItem)
+					}	else {
+						let historyItem = {}
 						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
+						compareJson(item, historyItem, commit)
+						history[propertyName].push(historyItem)
 						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
 					}
-					history[propertyName].push(historyItem)
 				} else {
 					let historyItem = history[propertyName][index]
 					var itemModified = compareJson(item, historyItem, commit)
@@ -104,7 +103,6 @@ var compareJson = function(obj, history, commit) {
 						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
 						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
 					}
-
 				}
 			}
 		} else {
