@@ -5,31 +5,27 @@ describe('When generating history', function() {
 
   var objects = [
     {
-      add: [],
-      // reorder: [
-      //           {one: '1',
-      //           id: '11'},
-      //           {two: '2',
-      //           id: '22'}
-      //          ],
-      create: [],
-      delete: [],
-      recursive: [{ name: 'first' }],
+      // add: [],
+      reorder: [
+                {one: '1'},
+                {two: '2'}
+               ],
+      // create: [],
+      // delete: [],
+      // recursive: [{ name: 'first' }],
       $commit: {
         author: 'rob',
         date: '2/2/12'
       }
     },
     {
-      add: [{ up: '1' }],
-      // reorder: [
-      //           {two: '2',
-      //           id: '22'},
-      //           {one: '1',
-      //           id: '11'}
-      //          ],
-      create: [],
-      recursive: [{ name: 'second' }],
+      // add: [{ up: '1' }],
+      reorder: [
+                {one: '1'},
+                {two: '2'}
+               ],
+      // create: [],
+      // recursive: [{ name: 'second' }],
       $commit: {
         author: 'jamie',
         date: '3/3/13'

@@ -72,6 +72,15 @@ module.exports = function(path) {
     })
   }
 
+
+  // Used -d and not -D as to not force deletion in case remote and local
+  // not merged properly. If no problems, should work as expected
+  var delete = function(branch, callback) {
+    gitExecute('branch -d ' + branch, function(err) {
+      gitExecute('push origin --delete ' + branch, callback)
+    })
+  }
+
   var pull = function(branch, callback) {
     gitExecute('pull ' + branch, callback)
   }

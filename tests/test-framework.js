@@ -123,3 +123,12 @@ module.exports.changeBranch = function(collection, newbranch) {
     })
   })
 }
+
+module.exports.deleteBranch = function(collection, branchToDelete) {
+  return new Promise((done, err) => {
+
+    collection.deleteBranch(branchToDelete, function() {
+      done(collection)
+    })
+  })
+}
