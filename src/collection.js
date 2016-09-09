@@ -80,7 +80,11 @@ module.exports = function(options) {
 
   var deleteBranch = function(branchToDelete, callback) {
     repo.branchExists(branchToDelete, function(branchExists) {
-      repo.delete(branchToDelete, function(err) {
+      if (!branchExists) {
+        console.log('No such branch, do nothing')
+        callback()
+      }
+      repo.deleteBranch(branchToDelete, function(err) {
         callback(err)
       })
     })
