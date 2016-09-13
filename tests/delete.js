@@ -22,23 +22,27 @@ describe('Delete branch from a collection', function() {
     }
 
     var data2 = {
-      first: { name: 'first'}
+      first: { name: 'first',
+               other: 'some'
+             }
     }
 
     framework.collection({name: 'test'})
       .then(c => framework.save(c, data1))
       .then(c => framework.createBranch(c, 'dev'))
+      .then(c => framework.save(c, data2))
       .then(c => framework.collection({name: 'test'}))
+      .then(c => framework.save(c, data1))
       .then(c => framework.deleteBranch(c, 'dev'))
       .then(c => done())
   })
 
-  // after(function() {
-  //   rimraf(testDirectory)
-  // })
+  after(function() {
+    rimraf(testDirectory)
+  })
 
   it('Branch deleted', function(done) {
-    assert(/* add test to see if branch deleted */)
+    assert()
     done()
   })
 })
