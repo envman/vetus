@@ -17,14 +17,14 @@ describe('Delete branch from a collection', function() {
 
     fs.mkdirSync(testDirectory)
 
+    var devobj
+
     var data1 = {
       first: { name: 'first' },
     }
 
     var data2 = {
-      first: { name: 'first',
-               other: 'some'
-             }
+      first: { name: 'first', other: 'some' }
     }
 
     framework.collection({name: 'test'})
@@ -42,7 +42,7 @@ describe('Delete branch from a collection', function() {
   })
 
   it('Branch deleted', function(done) {
-    assert()
+    assert(typeof(devobj) === undefined)
     done()
   })
 })
