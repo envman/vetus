@@ -3,6 +3,7 @@ module.exports = function(objects, history) {
 
 	for (var obj of objects) {
 		updateJson(obj, history)
+		console.log(history)
 	}
 
 	return history
@@ -12,45 +13,123 @@ var updateJson = function(obj, history) {
  	var commit = obj.$commit
  	delete obj.$commit
 
+	deleteJson(obj, history, commit)
  	compareJson(obj, history, commit)
 }
 
+var deleteJson = function(obj, history, commit) {
+	/* Assumes that the tree maintains its obj-array-obj-array-... structure
+	 and never change into different things and also ends in objects
+	 */
+
+  var deleted = false
+
+	if (Array.isArray(history)) {
+		// Might not work if javascript can't compare equality of objects
+		for (var index in history) {
+			if (obj.indexOf(history[index]) === -1) {
+				history.splice(index, 1)
+			}	else {
+				deleteJson(obj[index], history[index], commit)
+			}
+		}
+	} else {
+
+	  var hist_keys = Object.keys(history)
+			.filter(p => p.indexOf('$') < 0)
+		var obj_keys = Object.keys(obj)
+			.filter(p => p.indexOf('$') < 0)
+
+		for (var key of hist_keys) {
+			if (obj_keys.indexOf(key) === -1) {
+				deleted = true
+				delete history[key]
+			  delete history['$hist_' + key]
+			}
+
+			if (typeof(obj[key]) === 'object' || Array.isArray(obj[key])) {
+				deleteJson(obj[key], history[key], commit)
+			} else {
+				return deleted
+			}
+		}
+	}
+}
+
+// unique ID generator from online
+var ID = function () {
+  // Math.random should be unique because of its seeding algorithm.
+  // Convert it to base 36 (numbers + letters), and grab the first 9 characters
+  // after the decimal.
+  return '' + Math.random().toString(36).substr(2, 9);
+};
+
 var compareJson = function(obj, history, commit) {
+	// console.log('obj', obj)
 
   var modified = false
 
-  for (var propertyName in obj) {
+	let filtered = Object.getOwnPropertyNames(obj)
+		.filter(p => p.indexOf('$') < 0 || typeof(p.id) === 'undefined' )
+
+  for (var propertyName of filtered) {
+
   	var historyProperty = '$hist_' + propertyName
-		var arrayProperty = '$hist_array_' + propertyName
 
 		// split into cases: if array
 		if (Array.isArray(obj[propertyName])) {
+			let created = false
+
 			if (!history[propertyName]) {
+				console.log('!history[propertyName] true')
+				created = true
 				history[propertyName] = []
-				history['$hist_' + propertyName] = '??'
+				history[historyProperty] = 'Created by ' + commit.author + ' at ' + commit.date
 			}
 
 			for (let index in obj[propertyName]) {
 				let item = obj[propertyName][index]
 
-				if (history[propertyName].length <= index) {
-					console.log('create hist')
-					let historyItem = { $hist_arr: 'Created..' }
-					compareJson(item, historyItem, commit)
-					history[propertyName].push(historyItem)
+				if (history[propertyName].length - 1 < index) {
+					console.log(history)
+					console.log('(history[propertyName].length - 1 < index) true, history[propertyName].length === ' + history[propertyName].length)
+					// this branch creates a new element in history[propertyName]
+					if (created === true){
+						console.log('created === true')
+						let historyItem = {}
+						historyItem['$hist_array'] = 'Created by ' + commit.author + ' at ' + commit.date
+						historyItem['id'] = ID()
+						compareJson(item, historyItem, commit)
+						history[propertyName].push(historyItem)
+					}	else if (created === false && history[propertyName].length === 0) {
+						console.log('created === false && history[propertyName].length === 0')
+						let historyItem = {}
+						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
+						historyItem['id'] = ID()
+						compareJson(item, historyItem, commit)
+						history[propertyName].push(historyItem)
+						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
+					} else {
+						console.log('else')
+						let historyItem = {}
+						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
+						compareJson(item, historyItem, commit)
+						history[propertyName].push(historyItem)
+						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
+					}
 				} else {
-					console.log('read hist')
+					console.log(history)
+					console.log('!(history[propertyName].length - 1 < index) true, in (else), history[propertyName].length === ' + history[propertyName].length)
 					let historyItem = history[propertyName][index]
 					var itemModified = compareJson(item, historyItem, commit)
 					if (itemModified) {
-						historyItem['$hist_arr'] = 'Updated..'
+						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
+						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
 					}
 				}
 			}
 		} else {
-		// base case: if we are at leaf, need to include array here
 	    if (typeof(obj[propertyName]) != 'object') {
-	      // simple type
 	    	if (!history[propertyName]) {
 			  	history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
 			  	history[propertyName] = obj[propertyName]
@@ -64,9 +143,7 @@ var compareJson = function(obj, history, commit) {
 		  		history[propertyName] = obj[propertyName]
 		  		modified = true
 		  	}
-			// else we check further down the tree
 			} else {
-				// obj is not at leaf, history is at leaf
 			  if (!history[propertyName] || typeof(history[propertyName]) !== 'object') {
 					history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
 					var childHistory = {}
@@ -77,7 +154,6 @@ var compareJson = function(obj, history, commit) {
 
 			  	modified = true
 					continue
-				// obj is not at leaf, history is not at leaf
 			  } else {
 			  	var childModified = compareJson(obj[propertyName], history[propertyName], commit)
 			  	modified = childModified

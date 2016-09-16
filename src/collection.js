@@ -78,6 +78,22 @@ module.exports = function(options) {
     })
   }
 
+  var deleteBranch = function(branchToDelete, callback) {
+    console.log("in deleteBranch")
+    repo.branchExists(branchToDelete, function(branchExists) {
+      if (!branchExists) {
+        console.log('No such branch, do nothing')
+        callback()
+        return
+      }
+      console.log("Deleting branch")
+      repo.deleteBranch(branchToDelete, function(err) {
+        console.log("Branch " + branchToDelete + " deleted")
+        callback(err)
+      })
+    })
+  }
+
   var createBranch = function(newbranch, callback) {
     preCommand(function(oldBranchExists) {
       repo.branchExists(newbranch, function(branchExists){
@@ -335,7 +351,8 @@ module.exports = function(options) {
     createBranch: createBranch,
     history: history,
     merge: merge,
-    branchList: branchList
+    branchList: branchList,
+    deleteBranch: deleteBranch
   }
 
   return collection
