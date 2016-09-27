@@ -27,13 +27,32 @@ let processStage = function(stage, graph, meta) {
   let history = graph['$history'] = graph['$history'] || {}
 
   for (let prop of getProperties(stage)) {
-    if (typeof(stage[prop]) === 'object') {
+    if (Array.isArray(stage[prop])) {
+      let state = null
+      if (!graph[prop]) {
+        state = 'created'
+        graph[prop] = []
+      }
 
+      let arrayHistory = (history[prop] && history[prop].items) || []
+
+      for (let i in stage[prop]) {
+        if (graph[prop].length == i) {
+          graph[prop].push(stage[prop][i])
+          state = state || 'modified'
+          arrayHistory[i] = { last: meta, state: 'created' }
+        } else if (graph[prop][i] !== stage[prop][i]) {
+          graph[prop][i] = stage[prop][i]
+          arrayHistory[i] = { last: meta, state: 'modified' }
+        }
+      }
+
+      history[prop] = { items: arrayHistory, state: state }
+    } else if (typeof(stage[prop]) === 'object') {
       let objHistory = graph[prop] && graph[prop]['$history']
       graph[prop] = processStage(stage[prop], objHistory, meta)
     } else {
-
-      var state = getState(stage[prop], graph[prop])
+      let state = getState(stage[prop], graph[prop])
       graph[prop] = stage[prop]
 
       if (state) {
@@ -54,6 +73,9 @@ let processStage = function(stage, graph, meta) {
 
 // TODO:
 // arrays (simple & object)
+// array reorder (for simple modification is taken as position based)
+// array reorder objects (can use optional id tags to mark positions, should work as much as possible without)
+// arrays in arrays / sub objects (this array in array is invalid case for now)
 // change of type
 // With a pre existing history passed (should work just needs tests)
 // Add history modes (none, normal, full)
@@ -124,6 +146,43 @@ describe('When generating history', function() {
 
     it('Should have the correct history', function() {
       assert(history.obj['$history'].name.last.commit === '2')
+    })
+  })
+
+  describe('With simple arrays', function() {
+    var stages = [
+      { arr: [], change: ['first'], insert: ['first'], del: ['first'] },
+      { arr: ['added'], change: ['second'], insert: ['second', 'first'], del: [] }
+    ]
+
+    let history = historyGenerator(stages)
+
+    it('should contin correct array', function() {
+      assert(history.arr[0] === 'added')
+    })
+
+    it('Should have the overall state modified', function() {
+      assert(history['$history'].arr.state === 'modified', history['$history'].arr.state)
+    })
+
+    it('Should have the item state created', function() {
+      assert(history['$history'].arr.items[0].state === 'created', history['$history'].arr.items[0].state)
+    })
+
+    it('Should have the changed value', function() {
+      assert(history.change[0] === 'second', history.change[0])
+    })
+
+    it('Should have the item state modified', function() {
+      assert(history['$history'].change.items[0].state === 'modified', history['$history'].change.items[0].state)
+    })
+
+    it('Should handle insert', function() {
+      assert(history.insert[0] === 'second')
+      assert(history.insert[1] === 'first')
+      assert(history['$history'].insert.state === 'modified')
+      assert(history['$history'].insert.items[0].state === 'modified')
+      assert(history['$history'].insert.items[1].state === 'created')
     })
   })
 })

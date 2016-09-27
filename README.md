@@ -77,6 +77,18 @@ vetus.collection({name: 'collection', user: 'user', branch: 'master'}, function(
 - Diff Branches
 - Better Logging (:D)
 
+### Things to maybe look at
+- Document Indexing (in collection?)
+- Merge of collections
+- Split collection
+- Cross collection search (maybe use index stuff? O_o)
+- Better define what collections are supposed to be used for
+
+### Collections
+A collection is used to store multiple documents that version together, possibly later there should be a higher abstraction for
+documents that should be searchable together, this would allow for different document types to be stored. Don't really have to worry
+about this until search is implemented.
+
 ## Contributors
 - Jamie Mahoney (https://github.com/mahoneyj2)
 - Isak Falk (https://github.com/IsakFalk)
