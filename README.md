@@ -7,7 +7,7 @@ A versioned json object store based on git (Currently in development)
 - user: the name of the user accessing the document, if none is supplied a default user is used
 - branch: the branch to perform the operation on, if none is supplied the default master is used
 
-`npm install vetus` Not working yet
+`npm install vetus`
 
 Require vetus
 ```javascript
@@ -65,7 +65,6 @@ vetus.collection({name: 'collection', user:'user'}, function(collection) {
 - Object Graph History
 - Object Merge Resolution
 - Diff Branches
-- Put on NPM
 - Better Logging (:D)
 
 ## Contributors
