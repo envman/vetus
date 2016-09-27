@@ -88,7 +88,7 @@ var compareJson = function(obj, history, commit) {
 
 				if (history[propertyName].length - 1 < index) {
 					// this branch creates a new element in history[propertyName]
-					
+
 					if (created === true){
 						let historyItem = {}
 						historyItem['$hist_array'] = 'Created by ' + commit.author + ' at ' + commit.date

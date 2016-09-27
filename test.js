@@ -5,6 +5,7 @@ describe('Vetus Tests', function() {
   require('./tests/update')
   require('./tests/users')
   require('./tests/branch')
+  require('./tests/delete')
   require('./tests/merge')
   // require('./tests/conflict') // conflict not supported yet
   require('./tests/diff'),

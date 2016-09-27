@@ -72,15 +72,17 @@ module.exports = function(options) {
   }
 
   var deleteBranch = function(branchToDelete, callback) {
-    repo.branchExists(branchToDelete, function(branchExists) {
-      if (!branchExists) {
-        return callback()
-      }
+    repo.fetch(function() {
+      repo.branchExists(branchToDelete, function(branchExists) {
+        if (!branchExists) {
+          return callback()
+        }
 
-      repo.deleteBranch(branchToDelete, function(err) {
-        callback(err)
+        repo.deleteBranch(branchToDelete, function(err) {
+          callback(err)
+        })
       })
-    })
+    })    
   }
 
   var createBranch = function(newbranch, callback) {
