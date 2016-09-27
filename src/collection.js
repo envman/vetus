@@ -82,7 +82,7 @@ module.exports = function(options) {
           callback(err)
         })
       })
-    })    
+    })
   }
 
   var createBranch = function(newbranch, callback) {
@@ -274,10 +274,13 @@ module.exports = function(options) {
           checkUserGit(function() {
             changeBranch(branch ,function(exists) {
               if (exists) {
-                return pull(callback)
+                repo.execute('fetch --prune')
+                  .then(() => {
+                      pull(callback)
+                  })
+              } else {
+                  return callback(exists)
               }
-
-              return callback(exists)
             })
           })
         })
