@@ -60,8 +60,18 @@ vetus.collection({name: 'collection', user:'user'}, function(collection) {
 })
 ```
 
+### Delete a branchList
+```javascript
+vetus.collection({name: 'collection', user: 'user', branch: 'master'}, function(collection) {
+  collection.deleteBranch('my_branch', function() {
+    res.send('OK')
+  })
+})
+```
+- Make sure collection branch is not the branch you want to delete
+- May be some issues with this currently as other users branches are removed when they load next (via fetch --prune)
+
 ### Planned Features
-- Branch Deletion
 - Object Graph History
 - Object Merge Resolution
 - Diff Branches
