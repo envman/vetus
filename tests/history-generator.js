@@ -1,187 +1,129 @@
 var assert = require('chai').assert
-var historyGenerator = require('./../src/history-generator')
+// var historyGenerator = require('./../src/history-generator')
+
+let getProperties = function(obj) {
+  return Object.getOwnPropertyNames(obj)
+    .filter(p => !p.startsWith('$'))
+}
+
+let getState = function(stage, graph) {
+  if (!graph) {
+    return 'created'
+  } else if (graph !== stage) {
+    return 'modified'
+  }
+}
+
+let historyGenerator = function(stages, graph) {
+  for (let stage of stages) {
+    graph = processStage(stage, graph, stage['$meta'])
+  }
+
+  return graph
+}
+
+let processStage = function(stage, graph, meta) {
+  graph = graph || {}
+  let history = graph['$history'] = graph['$history'] || {}
+
+  for (let prop of getProperties(stage)) {
+    if (typeof(stage[prop]) === 'object') {
+
+      let objHistory = graph[prop] && graph[prop]['$history']
+      graph[prop] = processStage(stage[prop], objHistory, meta)
+    } else {
+
+      var state = getState(stage[prop], graph[prop])
+      graph[prop] = stage[prop]
+
+      if (state) {
+        history[prop] = { last: meta, state: state }
+      }
+    }
+  }
+
+  for (let prop of getProperties(graph)) {
+    if (!stage[prop]) {
+      delete graph[prop]
+      delete history[prop]
+    }
+  }
+
+  return graph
+}
+
+// TODO:
+// arrays (simple & object)
+// change of type
+// With a pre existing history passed (should work just needs tests)
+// Add history modes (none, normal, full)
 
 describe('When generating history', function() {
+  describe('Initial creation', function() {
+    var stages = [{ prop: 'name', $meta: { commit: '1' } }]
 
-  var objects1 = [
-    {
-      name: 'first',
-      $commit: {
-        author: 'jamie',
-        date: '1/1/12'
-      }
-    },
+    var history = historyGenerator(stages)
 
-    {
-      name: 'second',
-      $commit: {
-        author: 'rob',
-        date: '2/2/12'
-      }
-    },
-  ]
+    it('Should have the property', function() {
+      assert(history.prop === 'name')
+    })
 
-  var history1 = historyGenerator(objects1)
+    it('Should have the history', function() {
+      assert(history['$history']['prop']['last']['commit'] === '1')
+    })
 
-  var objects2 = [
-    {
-      name: 'first',
-      $commit: {
-        author: 'jamie',
-        date: '1/1/12'
-      }
-    },
-
-    {
-      name: 2,
-      $commit: {
-        author: 'rob',
-        date: '2/2/12'
-      }
-    },
-  ]
-
-  var history2 = historyGenerator(objects2)
-
-  var objects3 = [
-    {
-      name: 'first',
-      $commit: {
-        author: 'rob',
-        date: '2/2/12'
-      }
-    },
-  ]
-
-  var history3 = historyGenerator(objects3)
-
-  var objects4 = [
-    {
-      name: 'first',
-      $commit: {
-        author: 'jamie',
-        date: '1/1/12'
-      }
-    },
-
-    {
-      name: {
-        subname: 'subfirst'
-      },
-      $commit: {
-        author: 'rob',
-        date: '2/2/12'
-      }
-    },
-  ]
-
-  var history4 = historyGenerator(objects4)
-
-  var objects5 = [
-    {
-      name: {
-        subname: 'subfirst'
-      },
-      $commit: {
-        author: 'jamie',
-        date: '1/1/12'
-      }
-    },
-
-    {
-      name: {
-        subname: 'subsecond'
-      },
-      $commit: {
-        author: 'rob',
-        date: '2/2/12'
-      }
-    },
-  ]
-
-  var history5 = historyGenerator(objects5)
-
-  var objects6 = [
-    {
-      name: {
-        subname: 'subfirst'
-      },
-      $commit: {
-        author: 'jamie',
-        date: '1/1/12'
-      }
-    },
-
-    {
-      name: {
-        subname: 2
-      },
-      $commit: {
-        author: 'rob',
-        date: '2/2/12'
-      }
-    },
-  ]
-
-  var history6 = historyGenerator(objects6)
-
-  it('latest value shown', function() {
-    assert(history1.name === 'second')
+    it('Should have the created state', function() {
+      assert(history['$history']['prop']['state'] === 'created')
+    })
   })
 
-  it('latest value shown', function() {
-    assert(history1.$hist_name, '$hist_name node missing')
-    assert(history1.$hist_name === 'Modified by rob at 2/2/12', '$hist_name incorrect value: ' + history1.$hist_name)
+  describe('With 2 stages', function() {
+    var stages = [
+      { name: 'first', unchanged: 'same', deleted: 'hello', $meta: { commit: '1' } },
+      { name: 'second', unchanged: 'same', $meta: { commit: '2' } }
+    ]
+
+    var history = historyGenerator(stages)
+
+    it('Should have the last value', function() {
+      assert(history.name === 'second')
+    })
+
+    it('Should have the last commit details', function() {
+      assert(history['$history'].name.last.commit === '2')
+    })
+
+    it('Should not contain the deleted value', function() {
+      assert(!history.deleted)
+    })
+
+    it('Should not contain deleted history', function() {
+      assert(!history['$history'].deleted)
+    })
+
+    it('Should have the modified state', function() {
+      assert(history['$history'].name.state === 'modified')
+    })
+
+    it('Should have the original state if not changed', function() {
+      assert(history['$history'].unchanged.state === 'created', 'State should be created not:' + history['$history'].unchanged.state)
+    })
   })
 
-  it('Type has been modified', function() {
-    assert(history2.name === 2)
-  })
+  describe('With sub objects', function() {
+    var stages = [
+      { obj: { name: 'first' }, $meta: { commit: '1' } },
+      { obj: { name: 'second' }, $meta: { commit: '2' } }
+    ]
 
-  it('Type has been modified', function() {
-    assert(history2.$hist_name, '$hist_name node missing')
-    assert(history2.$hist_name === 'Modified by rob at 2/2/12, Type changed', '$hist_name incorrect value: ' + history2.$hist_name)
-  })
+    var history = historyGenerator(stages)
 
-  it('Data created', function() {
-    assert(history3.name === 'first')
-  })
+    it('Should have the correct value', function() {
+      assert(history.obj.name === 'second')
+    })
 
-  it('Data created', function() {
-    assert(history3.$hist_name, '$hist_name node missing')
-    assert(history3.$hist_name === 'Created by rob at 2/2/12', '$hist_name incorrect value: ' + history3.$hist_name)
-  })
-
-  it('Recursive, created', function() {
-    assert(history4.name.subname === 'subfirst')
-  })
-
-  it('Recursive, created', function() {
-    assert(history4.$hist_name, '$hist_name node missing')
-    assert(history4.$hist_name === 'Created by rob at 2/2/12', '$hist_name incorrect value: ' + history4.$hist_name)
-    assert(history4.name.$hist_subname, '$hist_name node missing')
-    assert(history4.name.$hist_subname === 'Created by rob at 2/2/12', '$hist_name incorrect value: ' + history4.name.$hist_name)
-  })
-
-  it('Recursive, modified', function() {
-    assert(history5.name.subname === 'subsecond')
-  })
-
-  it('Recursive, modified', function() {
-    assert(history5.$hist_name, '$hist_name node missing')
-    assert(history5.$hist_name === 'Modified by rob at 2/2/12', '$hist_name incorrect value: ' + history5.$hist_name)
-    assert(history5.name.$hist_subname, '$hist_name node missing')
-    assert(history5.name.$hist_subname === 'Modified by rob at 2/2/12', '$hist_name incorrect value: ' + history5.name.$hist_name)
-  })
-
-  it('Recursive, modified, type of leaf changed', function() {
-    assert(history6.name.subname === 2)
-  })
-
-  it('Recursive, modified, type of leaf changed', function() {
-    assert(history6.$hist_name, '$hist_name node missing')
-    assert(history6.$hist_name === 'Modified by rob at 2/2/12', '$hist_name incorrect value: ' + history6.$hist_name)
-    assert(history6.name.$hist_subname, '$hist_name node missing')
-    assert(history6.name.$hist_subname === 'Modified by rob at 2/2/12, Type changed', '$hist_name incorrect value: ' + history6.name.$hist_name)
+    it('Should have the correct history', function() {
+      assert(history.obj['$history'].name.last.commit === '2')
+    })
   })
 })
