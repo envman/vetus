@@ -3,7 +3,6 @@ module.exports = function(objects, history) {
 
 	for (var obj of objects) {
 		updateJson(obj, history)
-		console.log(history)
 	}
 
 	return history
@@ -65,12 +64,10 @@ var ID = function () {
 };
 
 var compareJson = function(obj, history, commit) {
-	// console.log('obj', obj)
-
   var modified = false
 
 	let filtered = Object.getOwnPropertyNames(obj)
-		.filter(p => p.indexOf('$') < 0 || typeof(p.id) === 'undefined' )
+		.filter(p => p.indexOf('$') < 0 || typeof(p.id) === 'undefined' ) // Not sure what this undefined check is for?
 
   for (var propertyName of filtered) {
 
@@ -81,7 +78,6 @@ var compareJson = function(obj, history, commit) {
 			let created = false
 
 			if (!history[propertyName]) {
-				console.log('!history[propertyName] true')
 				created = true
 				history[propertyName] = []
 				history[historyProperty] = 'Created by ' + commit.author + ' at ' + commit.date
@@ -91,18 +87,15 @@ var compareJson = function(obj, history, commit) {
 				let item = obj[propertyName][index]
 
 				if (history[propertyName].length - 1 < index) {
-					console.log(history)
-					console.log('(history[propertyName].length - 1 < index) true, history[propertyName].length === ' + history[propertyName].length)
 					// this branch creates a new element in history[propertyName]
+					
 					if (created === true){
-						console.log('created === true')
 						let historyItem = {}
 						historyItem['$hist_array'] = 'Created by ' + commit.author + ' at ' + commit.date
 						historyItem['id'] = ID()
 						compareJson(item, historyItem, commit)
 						history[propertyName].push(historyItem)
 					}	else if (created === false && history[propertyName].length === 0) {
-						console.log('created === false && history[propertyName].length === 0')
 						let historyItem = {}
 						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
 						historyItem['id'] = ID()
@@ -110,7 +103,6 @@ var compareJson = function(obj, history, commit) {
 						history[propertyName].push(historyItem)
 						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
 					} else {
-						console.log('else')
 						let historyItem = {}
 						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
 						compareJson(item, historyItem, commit)
@@ -118,8 +110,6 @@ var compareJson = function(obj, history, commit) {
 						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
 					}
 				} else {
-					console.log(history)
-					console.log('!(history[propertyName].length - 1 < index) true, in (else), history[propertyName].length === ' + history[propertyName].length)
 					let historyItem = history[propertyName][index]
 					var itemModified = compareJson(item, historyItem, commit)
 					if (itemModified) {

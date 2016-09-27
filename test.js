@@ -3,13 +3,13 @@ describe('Vetus Tests', function() {
   require('./tests/create')
   require('./tests/load')
   require('./tests/update')
-  // require('./tests/users')
-  // require('./tests/branch')
-  // require('./tests/merge')
-  // require('./tests/conflict')
-  // require('./tests/diff'),
-  // require('./tests/diff-child-properties'),
-  // require('./tests/diff-array')
-  require('./tests/history')
-  // require('./tests/history-generator')
+  require('./tests/users')
+  require('./tests/branch')
+  require('./tests/merge')
+  // require('./tests/conflict') // conflict not supported yet
+  require('./tests/diff'),
+  require('./tests/diff-child-properties'),
+  require('./tests/diff-array')
+  // require('./tests/history') // need to fix issues with history generator
+  require('./tests/history-generator')
 })

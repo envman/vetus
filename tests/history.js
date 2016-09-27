@@ -1,4 +1,4 @@
-var assert = require('chai').assert
+var assert = require('./assert')
 var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
@@ -45,7 +45,6 @@ describe('Repository history testing', function() {
       .then(c => done())
   })
 
-
   after(function() {
     rimraf(testDirectory)
   })
@@ -57,7 +56,7 @@ describe('Repository history testing', function() {
   })
 
   it('First created & updated', function(done) {
-    assert(historyObj.first.name == 'created', "Not created")
+    assert.value(historyObj.first.name,'created', "Not created", historyObj)
     assert(historyObj.first.other == 'updated', "Not updated")
     done()
   })

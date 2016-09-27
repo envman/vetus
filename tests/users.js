@@ -32,7 +32,7 @@ describe('When multiple users are using the system', function() {
       .then(c => testData = c.data)
       .then(c => done())
   })
-
+  
   after(function() {
     rimraf(testDirectory)
   })

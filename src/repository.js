@@ -1,19 +1,38 @@
 var exec = require('child_process').exec
 var mkdirp = require('mkdirp')
+var Promise = require('promise')
 
 module.exports = function(path) {
   var path = path
 
+  var execute = function(command) {
+    return new Promise((fulfill, reject) => {
+      gitExecute(command, function(result, err) {
+        // console.log(command)
+        if (err) {
+          return reject(err)
+        }
+
+        fulfill(result)
+      })
+    })
+  }
+
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
-
     // console.log(command, path)
 
     exec(command, {cwd: path}, function(error, result) {
       if (error != null) {
         console.log("Error with command - " + command)
+        console.log('In Path', path)
         console.log(error)
-        callback(result, error)
+
+        gitExecute('status', function() {
+          gitExecute('branch', function() {
+            callback(result, error)
+          })
+        })
       }
       else {
         callback(result)
@@ -169,6 +188,7 @@ module.exports = function(path) {
       mergeBase : mergeBase,
       branchList: branchList,
       fetch: fetch,
-      deleteBranch: deleteBranch
+      deleteBranch: deleteBranch,
+      execute: execute
     }
 }
