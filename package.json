@@ -10,6 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "chai": "^3.5.0",
+    "clone": "^2.0.0",
     "mkdirp": "^0.5.1",
     "mock-require": "^1.3.0",
     "promise": "^7.1.1",

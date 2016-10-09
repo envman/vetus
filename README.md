@@ -22,7 +22,7 @@ vetus.collection({name: 'collection', user: 'user', branch: 'branch'}, function(
   // data object can have as many properties as you like, each property is saved as separate document
   collection.data.myObject = obj
 
-  collection.save(message, function() {
+  collection.save('Updated my object', function() {
     res.send('OK')
   })
 })
@@ -87,7 +87,7 @@ vetus.collection({name: 'collection', user: 'user', branch: 'master'}, function(
 ### Collections
 A collection is used to store multiple documents that version together, possibly later there should be a higher abstraction for
 documents that should be searchable together, this would allow for different document types to be stored. Don't really have to worry
-about this until search is implemented.
+about this until search is implemented. This could just be a seperate vetus path tbh.
 
 ## Contributors
 - Jamie Mahoney (https://github.com/mahoneyj2)

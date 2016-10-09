@@ -1,9 +1,11 @@
-var assert = require('chai').assert
+var assert = require('./assert')
+var clone = require('clone')
 // var historyGenerator = require('./../src/history-generator')
 
 let getProperties = function(obj) {
   return Object.getOwnPropertyNames(obj)
     .filter(p => !p.startsWith('$'))
+    .filter(p => !(Array.isArray(obj) && p === 'length'))
 }
 
 let getState = function(stage, graph) {
@@ -47,6 +49,8 @@ let processStage = function(stage, graph, meta) {
         }
       }
 
+      state = state || history[prop].state
+
       history[prop] = { items: arrayHistory, state: state }
     } else if (typeof(stage[prop]) === 'object') {
       let objHistory = graph[prop] && graph[prop]['$history']
@@ -71,14 +75,68 @@ let processStage = function(stage, graph, meta) {
   return graph
 }
 
+// NEED TO COPY NODE AT TOP LEVEL!?!?!?!?!
+// MAY NEED ADDITONAL HISTORY AT TOP LEVEL
+// MAY BE ABLE TO REMOVE OLD PASSING AND JUST PASS GRAPH LIKE ABOVE
+
+let pah = function(stages, graph) {
+  for (let stage of stages) {
+    var newGraph = clone(stage)
+    blah(graph, stage, newGraph, stage['$meta'])
+    graph = newGraph
+  }
+
+  return graph
+}
+
+historyGenerator = pah
+
+let blah = function(old, node, graph, meta) {
+  let state = null
+
+  if (typeof(node) === 'object') {
+    let history = {}
+
+    for (let prop of getProperties(node)) {
+      var res = blah(old && old[prop], node[prop], graph[prop], meta)
+      history[prop] = old && old['$history'][prop] || { state: 'created', last: meta }
+
+      if (res.state) {
+          history[prop] = { state: res.state, last: meta }
+          state = 'modified'
+      }
+    }
+
+    graph['$history'] = history
+  } else {
+    if (node != old) {
+      state = 'modified'
+
+      if (!old) {
+        state = 'created'
+      }
+    }
+  }
+
+  return {
+    state: state
+  }
+}
+
 // TODO:
 // arrays (simple & object)
+// With a pre existing history passed (should work just needs tests)
+// History modes (none, normal)
+
+// V2
 // array reorder (for simple modification is taken as position based)
 // array reorder objects (can use optional id tags to mark positions, should work as much as possible without)
-// arrays in arrays / sub objects (this array in array is invalid case for now)
 // change of type
-// With a pre existing history passed (should work just needs tests)
-// Add history modes (none, normal, full)
+// History mode (full)
+
+// V3
+// Mixed Arrays (simple & object)
+// arrays in arrays / sub objects (this array in array is invalid case for now)
 
 describe('When generating history', function() {
   describe('Initial creation', function() {
@@ -145,44 +203,126 @@ describe('When generating history', function() {
     })
 
     it('Should have the correct history', function() {
-      assert(history.obj['$history'].name.last.commit === '2')
+      assert.value(history.obj['$history'].name.last.commit, '2', 'incorrect commit details', history.obj['$history'])
+    })
+  })
+
+  describe('When generating first history', function() {
+    let stages = [
+      { $meta: 'commit', arr: [] }
+    ]
+
+    let graph = historyGenerator(stages)
+
+    it('Should contain an empty array', function() {
+      assert.value(graph.arr.length, 0)
+    })
+
+    it('An array should have the correct meta', function() {
+      assert.value(graph['$history'].arr.last, 'commit')
+    })
+
+    it('An array should have the correct state', function() {
+      assert.value(graph['$history'].arr.state, 'created')
+    })
+  })
+
+  describe('When generating two histories', function() {
+    let stages = [
+      { $meta: '1', arr: [] },
+      { $meta: '2', arr: ['item'] }
+    ]
+
+    let graph = historyGenerator(stages)
+
+    it('It should have an array with the correct length', function() {
+      assert.value(graph.arr.length, 1)
+    })
+
+    it('An array should have the correct meta', function() {
+      assert.value(graph['$history'].arr.last, '2', 'incorrect meta', graph)
+    })
+
+    it('An array should have the correct state', function() {
+      assert.value(graph['$history'].arr.state, 'modified')
+    })
+
+    it('Array item has correct history ', function() {
+      assert.value(graph.arr['$history'][0].last, '2')
+    })
+
+    it('Array item has correct state', function() {
+      assert.value(graph.arr['$history'][0].state, 'created')
     })
   })
 
   describe('With simple arrays', function() {
-    var stages = [
-      { arr: [], change: ['first'], insert: ['first'], del: ['first'] },
-      { arr: ['added'], change: ['second'], insert: ['second', 'first'], del: [] }
+    let stages = [
+      { arr: [], change: ['first'], insert: ['first'], del: ['first'], $meta: '1' },
+      { arr: ['added'], change: ['second'], insert: ['second', 'first'], del: [], newArr: [], $meta: '2' }
     ]
 
-    let history = historyGenerator(stages)
+    let graph = historyGenerator(stages)
 
     it('should contin correct array', function() {
-      assert(history.arr[0] === 'added')
+      assert(graph.arr[0] === 'added')
     })
 
     it('Should have the overall state modified', function() {
-      assert(history['$history'].arr.state === 'modified', history['$history'].arr.state)
+      assert.value(graph['$history'].arr.state, 'modified', 'incorrect array state', graph)
     })
 
     it('Should have the item state created', function() {
-      assert(history['$history'].arr.items[0].state === 'created', history['$history'].arr.items[0].state)
+      assert(graph.arr['$history'][0].state === 'created', graph.arr['$history'][0].state)
     })
 
     it('Should have the changed value', function() {
-      assert(history.change[0] === 'second', history.change[0])
+      assert(graph.change[0] === 'second', graph.change[0])
     })
 
     it('Should have the item state modified', function() {
-      assert(history['$history'].change.items[0].state === 'modified', history['$history'].change.items[0].state)
+      assert(graph.change['$history'][0].state === 'modified', graph.change['$history'][0].state)
     })
 
     it('Should handle insert', function() {
-      assert(history.insert[0] === 'second')
-      assert(history.insert[1] === 'first')
-      assert(history['$history'].insert.state === 'modified')
-      assert(history['$history'].insert.items[0].state === 'modified')
-      assert(history['$history'].insert.items[1].state === 'created')
+      assert.value('second', graph.insert[0], 'should have correct first value')
+      assert.value('first', graph.insert[1], 'should have correct second value')
+      assert.value('modified', graph['$history'].insert.state, 'should have correct array state')
+      assert.value('modified', graph.insert['$history'][0].state, 'should have correct first item state')
+      assert.value('created', graph.insert['$history'][1].state, 'should have correct second item state')
+    })
+
+    it('Should contain status for new array', function() {
+      assert(graph['$history'].newArr.state === 'created')
+    })
+  })
+
+  describe('With complex arrays', function() {
+    let stages = [
+      { $meta: '1', arr: [{ name: 'first' }] },
+      { $meta: '2', arr: [{ name: 'second' }] }
+    ]
+
+    let graph = historyGenerator(stages)
+
+    it('Should contain the correct data', function() {
+      assert(graph.arr[0].name === 'second')
+    })
+
+    it('Should have the correct state', function() {
+      assert.value('modified', graph['$history'].arr.state, 'should have correct array state', graph['$history'].arr.state)
+    })
+
+    it('should have correct child property meta', function() {
+      assert.value('2', graph.arr[0]['$history'].name.last)
+    })
+
+    it('should have correct child property state', function() {
+      assert.value('modified', graph.arr[0]['$history'].name.state)
+    })
+
+    it('Should have the correct array item state', function() {
+      assert.value(graph.arr['$history'][0].state, 'modified')
     })
   })
 })
