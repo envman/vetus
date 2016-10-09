@@ -8,98 +8,31 @@ let getProperties = function(obj) {
     .filter(p => !(Array.isArray(obj) && p === 'length'))
 }
 
-let getState = function(stage, graph) {
-  if (!graph) {
-    return 'created'
-  } else if (graph !== stage) {
-    return 'modified'
-  }
-}
-
-let historyGenerator = function(stages, graph) {
-  for (let stage of stages) {
-    graph = processStage(stage, graph, stage['$meta'])
-  }
-
-  return graph
-}
-
-let processStage = function(stage, graph, meta) {
-  graph = graph || {}
-  let history = graph['$history'] = graph['$history'] || {}
-
-  for (let prop of getProperties(stage)) {
-    if (Array.isArray(stage[prop])) {
-      let state = null
-      if (!graph[prop]) {
-        state = 'created'
-        graph[prop] = []
-      }
-
-      let arrayHistory = (history[prop] && history[prop].items) || []
-
-      for (let i in stage[prop]) {
-        if (graph[prop].length == i) {
-          graph[prop].push(stage[prop][i])
-          state = state || 'modified'
-          arrayHistory[i] = { last: meta, state: 'created' }
-        } else if (graph[prop][i] !== stage[prop][i]) {
-          graph[prop][i] = stage[prop][i]
-          arrayHistory[i] = { last: meta, state: 'modified' }
-        }
-      }
-
-      state = state || history[prop].state
-
-      history[prop] = { items: arrayHistory, state: state }
-    } else if (typeof(stage[prop]) === 'object') {
-      let objHistory = graph[prop] && graph[prop]['$history']
-      graph[prop] = processStage(stage[prop], objHistory, meta)
-    } else {
-      let state = getState(stage[prop], graph[prop])
-      graph[prop] = stage[prop]
-
-      if (state) {
-        history[prop] = { last: meta, state: state }
-      }
-    }
-  }
-
-  for (let prop of getProperties(graph)) {
-    if (!stage[prop]) {
-      delete graph[prop]
-      delete history[prop]
-    }
-  }
-
-  return graph
-}
-
 // NEED TO COPY NODE AT TOP LEVEL!?!?!?!?!
 // MAY NEED ADDITONAL HISTORY AT TOP LEVEL
 // MAY BE ABLE TO REMOVE OLD PASSING AND JUST PASS GRAPH LIKE ABOVE
 
-let pah = function(stages, graph) {
+let historyGenerator = function(stages, graph) {
   for (let stage of stages) {
     var newGraph = clone(stage)
-    blah(graph, stage, newGraph, stage['$meta'])
+    processStage(graph, stage, newGraph, stage['$meta'])
     graph = newGraph
   }
 
   return graph
 }
 
-historyGenerator = pah
-
-let blah = function(old, node, graph, meta) {
+let processStage = function(old, node, graph, meta) {
   let state = null
 
   if (typeof(node) === 'object') {
     let history = {}
 
     for (let prop of getProperties(node)) {
-      var res = blah(old && old[prop], node[prop], graph[prop], meta)
+      var res = processStage(old && old[prop], node[prop], graph[prop], meta)
       history[prop] = old && old['$history'][prop] || { state: 'created', last: meta }
+
+      // if history prop mark as modified?
 
       if (res.state) {
           history[prop] = { state: res.state, last: meta }
