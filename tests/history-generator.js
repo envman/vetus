@@ -8,9 +8,9 @@ let getProperties = function(obj) {
     .filter(p => !(Array.isArray(obj) && p === 'length'))
 }
 
-// NEED TO COPY NODE AT TOP LEVEL!?!?!?!?!
 // MAY NEED ADDITONAL HISTORY AT TOP LEVEL
-// MAY BE ABLE TO REMOVE OLD PASSING AND JUST PASS GRAPH LIKE ABOVE
+// MAY BE ABLE TO REMOVE OLD PASSING AND JUST PASS EXISTING GRAPH
+// A parent should be marked as modified if a child property is removed
 
 let historyGenerator = function(stages, graph) {
   for (let stage of stages) {
@@ -19,6 +19,7 @@ let historyGenerator = function(stages, graph) {
     graph = newGraph
   }
 
+  delete graph['$meta']
   return graph
 }
 
@@ -29,20 +30,25 @@ let processStage = function(old, node, graph, meta) {
     let history = {}
 
     for (let prop of getProperties(node)) {
-      var res = processStage(old && old[prop], node[prop], graph[prop], meta)
+      let propState = processStage(old && old[prop], node[prop], graph[prop], meta)
       history[prop] = old && old['$history'][prop] || { state: 'created', last: meta }
 
-      // if history prop mark as modified?
+      if (propState) {
+          history[prop] = { state: propState, last: meta }
 
-      if (res.state) {
-          history[prop] = { state: res.state, last: meta }
-          state = 'modified'
+          if (old) {
+              state = 'modified'
+          }
+      }
+
+      if (old && getProperties(old).toString() != getProperties(node)) {
+        state = 'modified'
       }
     }
 
     graph['$history'] = history
   } else {
-    if (node != old) {
+    if (node !== old) {
       state = 'modified'
 
       if (!old) {
@@ -51,13 +57,10 @@ let processStage = function(old, node, graph, meta) {
     }
   }
 
-  return {
-    state: state
-  }
+  return state
 }
 
 // TODO:
-// arrays (simple & object)
 // With a pre existing history passed (should work just needs tests)
 // History modes (none, normal)
 
@@ -87,6 +90,10 @@ describe('When generating history', function() {
 
     it('Should have the created state', function() {
       assert(history['$history']['prop']['state'] === 'created')
+    })
+
+    it('Should have the meta removed', function() {
+      assert(!history['$meta'])
     })
   })
 
@@ -256,6 +263,65 @@ describe('When generating history', function() {
 
     it('Should have the correct array item state', function() {
       assert.value(graph.arr['$history'][0].state, 'modified')
+    })
+  })
+
+  describe('When creating a property', function() {
+    let stages = [
+      { $meta: '1', obj: { name: 'delete me', hey: 'test' } }
+    ]
+
+    let graph = historyGenerator(stages)
+
+    it('The parent state should be modified', function() {
+      assert.value(graph['$history'].obj.state, 'created')
+    })
+  })
+
+  describe('When a property is deleted', function() {
+    let stages = [
+      { $meta: '1', obj: { name: 'delete me', hey: 'test' } },
+      { $meta: '2', obj: { hey: 'test' } }
+    ]
+
+    let graph = historyGenerator(stages)
+
+    it('The parent state should be modified', function() {
+      assert.value(graph['$history'].obj.state, 'modified')
+    })
+  })
+
+  describe('With a deep test', function() {
+    let stages = [
+      { $meta: '1', arr:[{obj: { arr:[{name: 'first'}] }}] },
+      { $meta: '2', arr:[{obj: { arr:[{name: 'second'}] }}] }
+    ]
+
+    let graph = historyGenerator(stages)
+
+    it('should have value', function() {
+      assert.value(graph.arr[0].obj.arr[0].name, 'second')
+    })
+
+    it('Should have root array state', function() {
+      assert.value(graph['$history'].arr.state, 'modified')
+    })
+  })
+
+  describe('When no changes happen', function() {
+    let stages = [
+      { $meta: '1', obj: { name: 'test' } },
+      { $meta: '2', obj: { name: 'test' } }
+    ]
+
+    let graph = historyGenerator(stages)
+
+    it('simple property have created state', function() {
+      assert.value(graph.obj['$history'].name.state, 'created')
+    })
+
+    it('Object property should have created state', function() {
+      assert.value(graph['$history'].obj.state, 'created')
     })
   })
 })
