@@ -146,7 +146,7 @@ module.exports = function(options) {
       var commit = commits.shift()
 
       branchToObj(commit.commit, function(obj) {
-        obj.$commit = commit
+        obj.$meta = commit
         commitDatas.push(obj)
         loadCommits(commits, commitDatas, callback)
       })

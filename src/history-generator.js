@@ -10,6 +10,7 @@ let getProperties = function(obj) {
 // MAY BE ABLE TO REMOVE OLD PASSING AND JUST PASS EXISTING GRAPH
 
 let historyGenerator = function(stages, graph) {
+
   for (let stage of stages) {
     var newGraph = clone(stage)
     processStage(graph, stage, newGraph, stage['$meta'])

@@ -3,17 +3,18 @@ var historyGenerator = require('./../src/history-generator')
 
 // TODO:
 // With a pre existing history passed (should work just needs tests)
-// History modes (none, normal)
+
 
 // V2
 // array reorder (for simple modification is taken as position based)
 // array reorder objects (can use optional id tags to mark positions, should work as much as possible without)
 // change of type
-// History mode (full)
+// History modes (none, normal)
 
 // V3
 // Mixed Arrays (simple & object)
 // arrays in arrays / sub objects (this array in array is invalid case for now)
+// History mode (Full)
 
 describe('When generating history', function() {
   describe('Initial creation', function() {
