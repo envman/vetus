@@ -71,6 +71,16 @@ vetus.collection({name: 'collection', user: 'user', branch: 'master'}, function(
 - Make sure collection branch is not the branch you want to delete
 - May be some issues with this currently as other users branches are removed when they load next (via fetch --prune)
 
+### Get History (beta)
+```javascript
+  vetus.collection({name: 'collection', user: 'user', branch: 'master'}, function(collection) {
+    collection.history(function(graph) {
+      res.json(graph)
+    })
+  })
+```
+- Returns an object graph that contains additional $history properties to show details of last update on each property/item
+
 ### Planned Features
 - Object Graph History
 - Object Merge Resolution
