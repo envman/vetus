@@ -1,161 +1,60 @@
-module.exports = function(objects, history) {
-	history = history || {}
+var clone = require('clone')
 
-	for (var obj of objects) {
-		updateJson(obj, history)
-	}
-
-	return history
+let getProperties = function(obj) {
+  return Object.getOwnPropertyNames(obj)
+    .filter(p => !p.startsWith('$'))
+    .filter(p => !(Array.isArray(obj) && p === 'length'))
 }
 
-var updateJson = function(obj, history) {
- 	var commit = obj.$commit
- 	delete obj.$commit
+// MAY NEED ADDITONAL HISTORY AT TOP LEVEL
+// MAY BE ABLE TO REMOVE OLD PASSING AND JUST PASS EXISTING GRAPH
 
-	deleteJson(obj, history, commit)
- 	compareJson(obj, history, commit)
+let historyGenerator = function(stages, graph) {
+  for (let stage of stages) {
+    var newGraph = clone(stage)
+    processStage(graph, stage, newGraph, stage['$meta'])
+    graph = newGraph
+  }
+
+  delete graph['$meta']
+  return graph
 }
 
-var deleteJson = function(obj, history, commit) {
-	/* Assumes that the tree maintains its obj-array-obj-array-... structure
-	 and never change into different things and also ends in objects
-	 */
+let processStage = function(old, node, graph, meta) {
+  let state = null
 
-  var deleted = false
+  if (typeof(node) === 'object') {
+    let history = {}
 
-	if (Array.isArray(history)) {
-		// Might not work if javascript can't compare equality of objects
-		for (var index in history) {
-			if (obj.indexOf(history[index]) === -1) {
-				history.splice(index, 1)
-			}	else {
-				deleteJson(obj[index], history[index], commit)
-			}
-		}
-	} else {
+    for (let prop of getProperties(node)) {
+      let propState = processStage(old && old[prop], node[prop], graph[prop], meta)
+      history[prop] = old && old['$history'][prop] || { state: 'created', last: meta }
 
-	  var hist_keys = Object.keys(history)
-			.filter(p => p.indexOf('$') < 0)
-		var obj_keys = Object.keys(obj)
-			.filter(p => p.indexOf('$') < 0)
+      if (propState) {
+          history[prop] = { state: propState, last: meta }
 
-		for (var key of hist_keys) {
-			if (obj_keys.indexOf(key) === -1) {
-				deleted = true
-				delete history[key]
-			  delete history['$hist_' + key]
-			}
+          if (old) {
+              state = 'modified'
+          }
+      }
 
-			if (typeof(obj[key]) === 'object' || Array.isArray(obj[key])) {
-				deleteJson(obj[key], history[key], commit)
-			} else {
-				return deleted
-			}
-		}
-	}
+      if (old && getProperties(old).toString() != getProperties(node)) {
+        state = 'modified'
+      }
+    }
+
+    graph['$history'] = history
+  } else {
+    if (node !== old) {
+      state = 'modified'
+
+      if (!old) {
+        state = 'created'
+      }
+    }
+  }
+
+  return state
 }
 
-// unique ID generator from online
-var ID = function () {
-  // Math.random should be unique because of its seeding algorithm.
-  // Convert it to base 36 (numbers + letters), and grab the first 9 characters
-  // after the decimal.
-  return '' + Math.random().toString(36).substr(2, 9);
-};
-
-var compareJson = function(obj, history, commit) {
-  var modified = false
-
-	let filtered = Object.getOwnPropertyNames(obj)
-		.filter(p => p.indexOf('$') < 0 || typeof(p.id) === 'undefined' ) // Not sure what this undefined check is for?
-
-  for (var propertyName of filtered) {
-
-  	var historyProperty = '$hist_' + propertyName
-
-		// split into cases: if array
-		if (Array.isArray(obj[propertyName])) {
-			let created = false
-
-			if (!history[propertyName]) {
-				created = true
-				history[propertyName] = []
-				history[historyProperty] = 'Created by ' + commit.author + ' at ' + commit.date
-			}
-
-			for (let index in obj[propertyName]) {
-				let item = obj[propertyName][index]
-
-				if (history[propertyName].length - 1 < index) {
-					// this branch creates a new element in history[propertyName]
-
-					if (created === true){
-						let historyItem = {}
-						historyItem['$hist_array'] = 'Created by ' + commit.author + ' at ' + commit.date
-						historyItem['id'] = ID()
-						compareJson(item, historyItem, commit)
-						history[propertyName].push(historyItem)
-					}	else if (created === false && history[propertyName].length === 0) {
-						let historyItem = {}
-						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
-						historyItem['id'] = ID()
-						compareJson(item, historyItem, commit)
-						history[propertyName].push(historyItem)
-						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
-					} else {
-						let historyItem = {}
-						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
-						compareJson(item, historyItem, commit)
-						history[propertyName].push(historyItem)
-						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
-					}
-				} else {
-					let historyItem = history[propertyName][index]
-					var itemModified = compareJson(item, historyItem, commit)
-					if (itemModified) {
-						historyItem['$hist_array'] = 'Updated by ' + commit.author + ' at ' + commit.date
-						history[historyProperty] = 'Modified by ' + commit.author + ' at ' + commit.date
-					}
-				}
-			}
-		} else {
-	    if (typeof(obj[propertyName]) != 'object') {
-	    	if (!history[propertyName]) {
-			  	history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
-			  	history[propertyName] = obj[propertyName]
-			  	modified = true
-			  } else if (typeof(obj[propertyName]) != typeof(history[propertyName])) {
-			  	history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date + ', Type changed'
-					history[propertyName] = obj[propertyName]
-			  	modified = true
-				} else if (obj[propertyName] != history[propertyName]) {
-		  		history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date
-		  		history[propertyName] = obj[propertyName]
-		  		modified = true
-		  	}
-			} else {
-			  if (!history[propertyName] || typeof(history[propertyName]) !== 'object') {
-					history[historyProperty] =  "Created by " + commit.author + " at " + commit.date
-					var childHistory = {}
-			  	var childModified = compareJson(obj[propertyName], childHistory, commit)
-			  	if (childModified) {
-			  		history[propertyName] = childHistory
-			  	}
-
-			  	modified = true
-					continue
-			  } else {
-			  	var childModified = compareJson(obj[propertyName], history[propertyName], commit)
-			  	modified = childModified
-			  	if (childModified) {
-			  		history[historyProperty] =  "Modified by " + commit.author + " at " + commit.date
-			  	}
-
-			  	continue
-			  }
-			}
-		}
-	}
-
-	return modified
-}
+module.exports = historyGenerator

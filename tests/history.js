@@ -21,18 +21,8 @@ describe('Repository history testing', function() {
 
     fs.mkdirSync(testDirectory)
 
-    var first = {
-      first: { name: 'created', other: 'created', stringToObj: 'created' }
-    }
-
-    var second = {
-      first: { other: 'updated', stringToObj: { name: 'created'} },
-      second: { name: { old : "old" } }
-    }
-
-    var third = {
-      second: { name: 'updated' }
-    }
+    let first = { name: 'first' }
+    let second = { name: 'second' }
 
     framework.collection({})
       .then(c => framework.save(c, first))
