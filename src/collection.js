@@ -4,7 +4,6 @@ var fs = require('fs')
 var Promise = require('promise')
 var mkdirp = require('mkdirp')
 let rimraf = require('rimraf')
-var historyGenerator = require('./history-generator')
 let gloop = require('./gloop')
 let splat = require('./splat')
 
@@ -28,33 +27,10 @@ module.exports = function(options) {
   var load = function(callback) {
     preCommand(function(branchExists) {
       let dataPath = path.join(userroot, 'data')
-      fs.lstat(dataPath, function(statErr, stats) {
-
-        if (!statErr && stats.isDirectory()) {
-          gloop(path.join(userroot, 'data'), function(loaded) {
-
-            collection.data = loaded
-            callback()
-          })
-        } else { // left this in to support loading of v1 collections =]
-          fs.readdir(userroot, function(err, filenames) {
-            if (err) return console.log(err)
-
-            var promises = filenames
-              .filter(f => f.endsWith('.json'))
-              .map(f => new Promise(function(done, error) {
-
-                fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
-                  if (err) return error(err)
-
-                  data[f.replace('.json', '')] = JSON.parse(file)
-                  return done()
-                })
-              }))
-
-            Promise.all(promises).then(callback)
-          })
-        }
+      fs.readFile(path.join(userroot, 'data.json'), 'utf-8', function(err, file) {
+        if (err) return error(err)
+        collection.data = JSON.parse(file)
+        callback()
       })
     })
   }
@@ -62,13 +38,15 @@ module.exports = function(options) {
   var save = function(message, callback) {
     preCommand(function() {
       rimraf(path.join(userroot, 'data'), function() {
-        splat(collection.data, path.join(userroot, 'data'), function() {
-          addAndCommit(message, function(commited) {
-            if (commited) {
-              repo.push(" origin " + branch, callback)
-            } else {
-              callback()
-            }
+        fs.writeFile(path.join(userroot, 'data.json'), JSON.stringify(collection.data), function() {
+          splat(collection.data, path.join(userroot, 'data'), function() {
+            addAndCommit(message, function(commited) {
+              if (commited) {
+                repo.push(" origin " + branch, callback)
+              } else {
+                callback()
+              }
+            })
           })
         })
       })
@@ -118,59 +96,6 @@ module.exports = function(options) {
         }
       })
     })
-  }
-
-  var branchToObj = function(currentbranch, callback) {
-    repo.checkout(currentbranch, function() {
-      var localdata = {}
-      fs.readdir(userroot, function(err, filenames) {
-        if (err) return console.log(err)
-
-        var promises = filenames
-          .filter(f => f.endsWith('.json'))
-          .map(f => new Promise(function(done, error) {
-
-            fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
-
-              if (err) {
-                error(err)
-              } else {
-                var obj = JSON.parse(file)
-                localdata[f.replace('.json', '')] = obj
-                done()
-              }
-            })
-          }))
-
-        Promise.all(promises).then(function() {
-          callback(localdata)
-        })
-      })
-    })
-  }
-
-  var history = function(callback) {
-    repo.jsonLog(branch + ' -s ', function(commits) {
-
-      loadCommits(commits.reverse(), [], function(commitDatas) {
-        var history = historyGenerator(commitDatas)
-        callback(history)
-      })
-    })
-  }
-
-  var loadCommits = function(commits, commitDatas, callback) {
-    if (commits.length > 0) {
-      var commit = commits.shift()
-
-      branchToObj(commit.commit, function(obj) {
-        obj.$meta = commit
-        commitDatas.push(obj)
-        loadCommits(commits, commitDatas, callback)
-      })
-    } else {
-      callback(commitDatas)
-    }
   }
 
   var changeBranch = function(newbranch, callback) {
@@ -326,7 +251,6 @@ module.exports = function(options) {
     load: load,
     save: save,
     createBranch: createBranch,
-    history: history,
     merge: merge,
     branchList: branchList,
     deleteBranch: deleteBranch

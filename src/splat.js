@@ -8,11 +8,19 @@ let sha1 = require('sha1')
 
 module.exports = function(obj, root, callback) {
 
+
   let hashPath = path.join(root, 'hash')
-  let inCache = JSON.parse(fs.readFileSync(path.join(root, 'hash'), 'utf-8'))
+
+  let inCache = {}
+  try {
+      inCache = JSON.parse(fs.readFileSync(path.join(root, 'hash'), 'utf-8'))
+  } catch(e) {
+
+  }
+
   let outCache = split(obj, root, inCache)
   fs.writeFileSync(hashPath, JSON.stringify(outCache, null, 2))
-  
+
   callback()
 }
 

@@ -22,9 +22,9 @@ splat(survey, dir, function() {
 
   console.timeEnd('splat')
   console.time('gloop')
-  gloop(dir, function(o) {
-    console.timeEnd('gloop')
+  // gloop(dir, function(o) {
+    // console.timeEnd('gloop')
 
 
-  })
+  // })
 })
