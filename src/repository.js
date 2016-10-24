@@ -74,8 +74,20 @@ module.exports = function(path) {
       callback = logOptions
       logOptions = ''
     }
+
     gitExecute('log ' + logOptions, function(result) {
       callback(result)
+    })
+  }
+
+  let isNew = function(callback) {
+    exec('git log', {cwd: path}, function(error, result) {
+      // console.log(error.toString())
+      if (error && error.toString().indexOf('does not have any commits yet') > -1) {
+        callback(true)
+      } else {
+        callback(false)
+      }
     })
   }
 
@@ -134,7 +146,7 @@ module.exports = function(path) {
   }
 
   var status = function(callback) {
-    gitExecute('status --porcelain', function(result) {
+    gitExecute('status', function(result) {
         callback(result)
     })
   }
@@ -189,6 +201,7 @@ module.exports = function(path) {
       branchList: branchList,
       fetch: fetch,
       deleteBranch: deleteBranch,
-      execute: execute
+      execute: execute,
+      isNew: isNew
     }
 }

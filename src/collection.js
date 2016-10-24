@@ -3,7 +3,10 @@ var Repository = require('./repository')
 var fs = require('fs')
 var Promise = require('promise')
 var mkdirp = require('mkdirp')
+let rimraf = require('rimraf')
 var historyGenerator = require('./history-generator')
+let gloop = require('./gloop')
+let splat = require('./splat')
 
 var write = Promise.denodeify(fs.writeFile)
 var read = Promise.denodeify(fs.readFile)
@@ -24,34 +27,49 @@ module.exports = function(options) {
 
   var load = function(callback) {
     preCommand(function(branchExists) {
-      fs.readdir(userroot, function(err, filenames) {
-        if (err) return console.log(err)
+      let dataPath = path.join(userroot, 'data')
+      fs.lstat(dataPath, function(statErr, stats) {
 
-        var promises = filenames
-          .filter(f => f.endsWith('.json'))
-          .map(f => new Promise(function(done, error) {
+        if (!statErr && stats.isDirectory()) {
+          gloop(path.join(userroot, 'data'), function(loaded) {
 
-            fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
-              if (err) return error(err)
+            collection.data = loaded
+            callback()
+          })
+        } else { // left this in to support loading of v1 collections =]
+          fs.readdir(userroot, function(err, filenames) {
+            if (err) return console.log(err)
 
-              data[f.replace('.json', '')] = JSON.parse(file)
-              return done()
-            })
-          }))
+            var promises = filenames
+              .filter(f => f.endsWith('.json'))
+              .map(f => new Promise(function(done, error) {
 
-        Promise.all(promises).then(callback)
+                fs.readFile(path.join(userroot, f), 'utf-8', function(err, file) {
+                  if (err) return error(err)
+
+                  data[f.replace('.json', '')] = JSON.parse(file)
+                  return done()
+                })
+              }))
+
+            Promise.all(promises).then(callback)
+          })
+        }
       })
     })
   }
 
   var save = function(message, callback) {
     preCommand(function() {
-      var promises = Object.getOwnPropertyNames(collection.data)
-        .map(p => write(path.join(userroot, p + '.json'), JSON.stringify(collection.data[p], null, 2)))
-
-      Promise.all(promises).then(function() {
-        addAndCommit(message, function() {
-          repo.push(" origin " + branch, callback)
+      rimraf(path.join(userroot, 'data'), function() {
+        splat(collection.data, path.join(userroot, 'data'), function() {
+          addAndCommit(message, function(commited) {
+            if (commited) {
+              repo.push(" origin " + branch, callback)
+            } else {
+              callback()
+            }
+          })
         })
       })
     })
@@ -180,14 +198,16 @@ module.exports = function(options) {
   }
 
   var addAndCommit = function(message, callback) {
-    repo.status(function(status) {
-      if (status) {
-        repo.addAll(function() {
-          repo.commit(message, callback)
-        })
-      } else {
-        callback()
-      }
+    repo.addAll(function() {
+      repo.status(function(status) {
+        if (status.indexOf('nothing to commit') < 0) {
+          repo.commit(message, function() {
+            callback(true)
+          })
+        } else {
+          callback(false)
+        }
+      })
     })
   }
 
@@ -272,16 +292,23 @@ module.exports = function(options) {
       .then(() => {
         checkBareGit(function() {
           checkUserGit(function() {
-            changeBranch(branch ,function(exists) {
-              if (exists) {
-                repo.execute('fetch --prune')
-                  .then(() => {
-                      pull(callback)
-                  })
+            repo.isNew(function(isNew) {
+              if (isNew) {
+                callback(true)
               } else {
-                  return callback(exists)
+                changeBranch(branch ,function(exists) {
+                  if (exists) {
+                    repo.execute('fetch --prune')
+                      .then(() => {
+                          pull(callback)
+                      })
+                  } else {
+                      return callback(exists)
+                  }
+                })
               }
             })
+
           })
         })
       })

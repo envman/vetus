@@ -29,7 +29,7 @@ describe('When a branch is deleted in a collection', function() {
     }
 
     framework.collection({name: 'test'})
-      .then(c => framework.save(c, { prop: {} }))
+      .then(c => framework.save(c, { prop: { test: 'hello' } }))
       .then(c => framework.createBranch(c, 'new_branch'))
       .then(c => framework.collection({name: 'test', user: 'second', branch: 'new_branch'}))
       .then(c => framework.load(c))
