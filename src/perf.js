@@ -15,7 +15,7 @@ console.timeEnd('write-json')
 
 let dir = './../temp'
 
-rimraf.sync(dir)
+// rimraf.sync(dir)
 
 console.time('splat')
 splat(survey, dir, function() {

@@ -1,74 +1,46 @@
 let fs = require('fs')
 var Promise = require('bluebird')
-let split = require('./splat-split')
 let getProperties = require('./get-props')
 let path = require('path')
 let mkdirp = require('mkdirp')
-
-// let write = Promise.denodeify(fs.writeFile)
+let farmhash = require('farmhash')
+let sha1 = require('sha1')
 
 module.exports = function(obj, root, callback) {
-  let data = split(obj)
-  // console.log(data)
-  //
-  // let data = { files:
-  //  { name: 'hello',
-  //    '__arr/0': '1',
-  //    '__arr/1': '2',
-  //    'sub/name': 'sub',
-  //    'sub/child/name': 'child' },
-  // paths: [ '__arr', 'sub/child' ] }
 
-  let pathWrites = data.paths.map(p => new Promise(function(fulfill, reject) {
-    mkdirp(path.join(root, p), function(err) {
-      if (err) {
-        mkdirp(path.join(root, p), function(err) {
-          if (err) {
-            console.log(err)
-            reject(err)
-          } else {
-            fulfill()
-          }
-        })
+  let hashPath = path.join(root, 'hash')
+  let inCache = JSON.parse(fs.readFileSync(path.join(root, 'hash'), 'utf-8'))
+  let outCache = split(obj, root, inCache)
+  fs.writeFileSync(hashPath, JSON.stringify(outCache, null, 2))
+  
+  callback()
+}
 
+let split = function(obj, root, inCache, cache) {
+  root = root || ''
+  cache = cache || {}
+
+  for (let prop of getProperties(obj)) {
+    if (typeof(obj[prop]) === 'object') {
+      let newRoot
+      if (Array.isArray(obj[prop])) {
+        newRoot = path.join(root, '__' + prop)
       } else {
-          fulfill()
+        newRoot = path.join(root, prop)
       }
-    })
-  }))
+      mkdirp.sync(newRoot)
 
-  Promise.all(pathWrites)
-    .then(() => {
-      let promises = getProperties(data.files)
-        .map(p => new Promise((fulfill, reject) => {
-          fs.writeFile(path.join(root, p), data.files[p], function(err) {
-            if (err) console.log(err)
-            fulfill()
-          })
-        }))
+      split(obj[prop], newRoot, inCache, cache)
+    } else {
+      let thePath = path.join(root, prop)
 
-        Promise.all(promises)
-          .then(callback)
-    })
-  // let promises = getProperties(data.files)
-  //   .map(p => write(path.join(root, p), data.files[p]))
+      let hash = sha1(obj[prop].toString())
+      cache[thePath] = hash
+      if (inCache[thePath] !== hash) {
+        fs.writeFileSync(thePath, obj[prop])
+      }
+    }
+  }
 
-
-
-  // console.log(data)
-
-  // Promise.reduce(promises, function({}, prom) {
-  //   console.log(prom)
-  //   return prom
-  // })
-  //   .then(o => console.log('done'))
-
-
-
-  // Promise.each(pathWrites).then(function() {
-  //   console.log('lol')
-  //   Promise.each(promises).then(function() {
-  //     callback()
-  //   })
-  // })
+  return cache
 }
