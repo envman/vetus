@@ -1,14 +1,11 @@
 let fs = require('fs')
-var Promise = require('bluebird')
-let getProperties = require('./get-props')
 let path = require('path')
 let mkdirp = require('mkdirp')
-let farmhash = require('farmhash')
 let sha1 = require('sha1')
 
+let getProperties = require('./get-props')
+
 module.exports = function(obj, root, callback) {
-
-
   let hashPath = path.join(root, 'hash')
 
   let inCache = {}
