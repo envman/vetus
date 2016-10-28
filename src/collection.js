@@ -28,7 +28,7 @@ module.exports = function(options) {
     preCommand(function(branchExists) {
       let dataPath = path.join(userroot, 'data')
       fs.readFile(path.join(userroot, 'data.json'), 'utf-8', function(err, file) {
-        if (err) return error(err)
+        if (err) console.log(err)
         collection.data = JSON.parse(file)
         callback()
       })
