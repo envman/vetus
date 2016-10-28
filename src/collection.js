@@ -37,17 +37,13 @@ module.exports = function(options) {
 
   var save = function(message, callback) {
     preCommand(function() {
-      rimraf(path.join(userroot, 'data'), function() {
-        fs.writeFile(path.join(userroot, 'data.json'), JSON.stringify(collection.data), function() {
-          splat(collection.data, path.join(userroot, 'data'), function() {
-            addAndCommit(message, function(commited) {
-              if (commited) {
-                repo.push(" origin " + branch, callback)
-              } else {
-                callback()
-              }
-            })
-          })
+      fs.writeFile(path.join(userroot, 'data.json'), JSON.stringify(collection.data), function() {
+        addAndCommit(message, function(commited) {
+          if (commited) {
+            repo.push(" origin " + branch, callback)
+          } else {
+            callback()
+          }
         })
       })
     })
