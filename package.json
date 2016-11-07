@@ -1,6 +1,6 @@
 {
   "name": "vetus",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "",
   "keywords": [
     "git",
@@ -18,8 +18,7 @@
     "chai": "^3.5.0",
     "mkdirp": "^0.5.1",
     "promise": "^7.1.1",
-    "rimraf": "^2.5.4",
-    "sha1": "^1.1.1"
+    "rimraf": "^2.5.4"
   },
   "repository": {
     "type": "git",

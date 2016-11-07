@@ -4,8 +4,6 @@ var fs = require('fs')
 var Promise = require('promise')
 var mkdirp = require('mkdirp')
 let rimraf = require('rimraf')
-let gloop = require('./gloop')
-let splat = require('./splat')
 
 var write = Promise.denodeify(fs.writeFile)
 var read = Promise.denodeify(fs.readFile)
