@@ -35,7 +35,7 @@ module.exports = function(options) {
 
   var save = function(message, callback) {
     preCommand(function() {
-      fs.writeFile(path.join(userroot, 'data.json'), JSON.stringify(collection.data), function() {
+      fs.writeFile(path.join(userroot, 'data.json'), JSON.stringify(collection.data, null, 2), function() {
         addAndCommit(message, function(commited) {
           if (commited) {
             repo.push(" origin " + branch, callback)
