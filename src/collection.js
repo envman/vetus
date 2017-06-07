@@ -205,6 +205,14 @@ module.exports = function(options) {
   var pull = function(callback) {
     repo.pull('origin ' + branch, callback)
   }
+  
+  var branchLog = function(callback) {
+    preCommand(function() {
+      repo.jsonLog(function(log) {
+        callback(log)
+      })
+    })
+  }
 
   var preCommand = function(callback) {
     checkPaths([bareroot, userroot])
@@ -247,7 +255,8 @@ module.exports = function(options) {
     createBranch: createBranch,
     merge: merge,
     branchList: branchList,
-    deleteBranch: deleteBranch
+    deleteBranch: deleteBranch,
+    log: branchLog
   }
 
   return collection
