@@ -54,7 +54,7 @@ module.exports = function(path) {
       logOptions = ''
     }
 
-    gitExecute('log ' + logOptions + ' --pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%f*},"', function(data) {
+    gitExecute('log ' + logOptions + ' --pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*},"', function(data) {
 
       // replace *'s with "'s
       var quoted = data.split('*').join('"')
