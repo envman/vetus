@@ -5,10 +5,9 @@ var Promise = require('promise')
 module.exports = function(path) {
   var path = path
 
-  var execute = function(command) {
+var execute = function(command) {
     return new Promise((fulfill, reject) => {
       gitExecute(command, function(result, err) {
-        // console.log(command)
         if (err) {
           return reject(err)
         }
@@ -20,19 +19,14 @@ module.exports = function(path) {
 
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
-    // console.log(command, path)
 
-    exec(command, {cwd: path}, function(error, result) {
-      if (error != null) {
+    exec(command, { cwd: path }, function(error, result) {
+      if (error) {
         console.log("Error with command - " + command)
         console.log('In Path', path)
         console.log(error)
 
-        gitExecute('status', function() {
-          gitExecute('branch', function() {
-            callback(result, error)
-          })
-        })
+        callback(null, error)
       }
       else {
         callback(result)
@@ -51,11 +45,15 @@ module.exports = function(path) {
   var jsonLog = function(logOptions, callback) {
     if (typeof logOptions === 'function') {
       callback = logOptions
-      logOptions = ''
+      logOptions = {}
     }
 
-    gitExecute('log ' + logOptions + ' --pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*},"', function(data) {
+    let file = logOptions.file || ''
 
+    let gitCall = `--pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*}," ${file}.json`
+
+    gitExecute('log ' + gitCall, function(data) {
+    
       // replace *'s with "'s
       var quoted = data.split('*').join('"')
 

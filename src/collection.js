@@ -22,21 +22,39 @@ module.exports = function(options) {
 
   var data = {}
 
-  var load = function(callback) {
-    preCommand(function(branchExists) {
-      let dataPath = path.join(userroot, 'data')
-      fs.readFile(path.join(userroot, 'data.json'), 'utf-8', function(err, file) {
-        if (err) console.log(err)
-        collection.data = JSON.parse(file)
-        callback()
+  var load = function (callback) {
+    preCommand(function (branchExists) {
+      fs.readdir(userroot, (err, list) => {
+        let proms = list.filter(f => f != '.git').map(f => new Promise((fulfill, reject) => {
+          fs.readFile(path.join(userroot, f), (err, file) => {
+            fulfill({ name: f.replace('.json', ''), object: JSON.parse(file) })
+          })
+        }))
+
+        Promise.all(proms).then(files => {
+          let data = {}
+          files.map(f => {
+            data[f.name] = f.object
+          })
+
+          collection.data = data
+          callback()
+        })
       })
     })
   }
 
-  var save = function(message, callback) {
-    preCommand(function() {
-      fs.writeFile(path.join(userroot, 'data.json'), JSON.stringify(collection.data, null, 2), function() {
-        addAndCommit(message, function(commited) {
+  var save = function (message, callback) {
+    preCommand(function () {
+
+      let proms = Object.getOwnPropertyNames(collection.data).map(f => new Promise((done, fail) => {
+        fs.writeFile(path.join(userroot, `${f}.json`), JSON.stringify(collection.data[f], null, 2), () => {
+          done()
+        })
+      }))
+
+      Promise.all(proms).then(() => {
+        addAndCommit(message, function (commited) {
           if (commited) {
             repo.push(" origin " + branch, callback)
           } else {
@@ -206,11 +224,9 @@ module.exports = function(options) {
     repo.pull('origin ' + branch, callback)
   }
   
-  var branchLog = function(callback) {
+  var branchLog = function(opts, callback) {
     preCommand(function() {
-      repo.jsonLog(function(log) {
-        callback(log)
-      })
+      repo.jsonLog(opts, callback)
     })
   }
 
