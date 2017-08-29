@@ -45,21 +45,26 @@ module.exports = function(options) {
   }
 
   var save = function (message, callback) {
-    preCommand(function () {
+    fs.readdir(userroot, (err, files) => {
+      files.filter(file => file.endsWith('.json')).map(f => {
+        fs.unlinkSync(path.join(userroot, f))
+      })
 
-      let proms = Object.getOwnPropertyNames(collection.data).map(f => new Promise((done, fail) => {
-        fs.writeFile(path.join(userroot, `${f}.json`), JSON.stringify(collection.data[f], null, 2), () => {
-          done()
-        })
-      }))
+      preCommand(function () {
+        let proms = Object.getOwnPropertyNames(collection.data).map(f => new Promise((done, fail) => {
+          fs.writeFile(path.join(userroot, `${f}.json`), JSON.stringify(collection.data[f], null, 2), () => {
+            done()
+          })
+        }))
 
-      Promise.all(proms).then(() => {
-        addAndCommit(message, function (commited) {
-          if (commited) {
-            repo.push(" origin " + branch, callback)
-          } else {
-            callback()
-          }
+        Promise.all(proms).then(() => {
+          addAndCommit(message, function (commited) {
+            if (commited) {
+              repo.push(" origin " + branch, callback)
+            } else {
+              callback()
+            }
+          })
         })
       })
     })
