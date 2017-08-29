@@ -46,10 +46,8 @@ module.exports = function(options) {
 
   var save = function (message, callback) {
     fs.readdir(userroot, (err, files) => {
-      files.map(f => {
-        if (f.endsWith('.json')) {
-          fs.unlinkSync(path.join(userroot, f))
-        }
+      files.filter(file => file.endsWith('.json')).map(f => {
+        fs.unlinkSync(path.join(userroot, f))
       })
 
       preCommand(function () {
