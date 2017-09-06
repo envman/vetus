@@ -49,7 +49,7 @@ module.exports = function(options) {
     fs.readdir(userroot, (err, files) => {
       if (files) {
         promise = files.filter(file => file.endsWith('.json')).map(f => new Promise((done, fail) => {
-          fs.unlinkSync(path.join(userroot, f), () => {
+          fs.unlink(path.join(userroot, f), () => {
             done()
           })
         }))
