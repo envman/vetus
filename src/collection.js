@@ -47,9 +47,13 @@ module.exports = function(options) {
   var save = function (message, callback) {
     fs.readdir(userroot, (err, files) => {
       if (files) {
-        files.filter(file => file.endsWith('.json')).map(f => {
-          fs.unlinkSync(path.join(userroot, f))
-        })
+        let proms = files.filter(file => file.endsWith('.json')).map(f => new Promise((done, fail) => {
+          fs.unlinkSync(path.join(userroot, f), () => {
+            done()
+          })
+        }))
+
+        Promise.all(proms)
       }
 
       preCommand(function () {
