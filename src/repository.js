@@ -164,7 +164,17 @@ var execute = function(command) {
 
   var branchExists = function(branch, callback) {
     gitExecute('branch --list ' + branch, function(result) {
-      callback(result)
+      if (!result) {
+        gitExecute('branch --remote', function(remoteResult) {
+          if (remoteResult.indexOf(branch) > -1) {
+            callback(branch)
+          } else {
+            callback(null)
+          }
+        })
+      } else {
+        callback(result)
+      }
     })
   }
 
