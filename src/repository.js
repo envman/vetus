@@ -19,6 +19,7 @@ var execute = function(command) {
 
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
+    console.log('EXECUTE: ' + command)
 
     exec(command, { cwd: path }, function(error, result) {
       if (error) {
@@ -53,7 +54,7 @@ var execute = function(command) {
     let gitCall = `--pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*}," ${file}.json`
 
     gitExecute('log ' + gitCall, function(data) {
-    
+
       // replace *'s with "'s
       var quoted = data.split('*').join('"')
 
