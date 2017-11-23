@@ -7,7 +7,7 @@ module.exports = function(settings) {
 
   return {
     collection: function(options, callback) {
-      console.log(`Collection: ${options.name} - ${options.user} - ${options.branch}`)
+      // console.log(`Collection: ${options.name} - ${options.user} - ${options.branch}`)
 
       var root = path.join(settings.path, options.name)
 

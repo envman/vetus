@@ -19,7 +19,7 @@ var execute = function(command) {
 
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
-    console.log('EXECUTE: ' + command)
+    // console.log('EXECUTE: ' + command)
 
     exec(command, { cwd: path }, function(error, result) {
       if (error) {
