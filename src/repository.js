@@ -61,6 +61,10 @@ var execute = function(command) {
 
     gitExecute('log ' + gitCall, function(data) {
 
+      if (!data) {
+        return []
+      }
+
       // replace *'s with "'s
       var quoted = data.split('*').join('"')
 
