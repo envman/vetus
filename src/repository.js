@@ -49,9 +49,15 @@ var execute = function(command) {
       logOptions = {}
     }
 
-    let file = logOptions.file || ''
+    let gitCall = `--pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*},"`
 
-    let gitCall = `--pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*}," ${file}.json`
+    if (logOptions.branch) {
+      gitCall += ` ${logOptions.branch}`
+    }
+
+    if (logOptions.file) {
+      gitCall += ` ${logOptions.file}`
+    }
 
     gitExecute('log ' + gitCall, function(data) {
 
