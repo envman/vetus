@@ -85,7 +85,9 @@ module.exports = function(options) {
             return console.log("Merge conflict : ", output)
           })
         } else {
-          callback()
+          repo.push('', () => {
+            callback()
+          })
         }
       })
     })
@@ -235,7 +237,7 @@ module.exports = function(options) {
   var pull = function(callback) {
     repo.pull('origin ' + branch, callback)
   }
-  
+
   var branchLog = function(opts, callback) {
     preCommand(function() {
       repo.jsonLog(opts, callback)
