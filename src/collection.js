@@ -85,8 +85,8 @@ module.exports = function(options) {
             return console.log("Merge conflict : ", output)
           })
         } else {
-          repo.push(` origin head`, () => {
-              callback()
+          repo.push('', () => {
+            callback()
           })
         }
       })
