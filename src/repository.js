@@ -56,15 +56,10 @@ var execute = function(command) {
     }
 
     if (logOptions.file) {
-      gitCall += ` ${logOptions.file}`
+      gitCall += ` ${logOptions.file}.json`
     }
 
     gitExecute('log ' + gitCall, function(data) {
-
-      if (!data) {
-        return []
-      }
-
       // replace *'s with "'s
       var quoted = data.split('*').join('"')
 
