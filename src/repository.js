@@ -61,7 +61,7 @@ var execute = function(command) {
       gitCall += ` ${logOptions.file}.json`
     }
 
-    fs.stat(paths.join(path, file), function (err, data) {
+    fs.stat(paths.join(path, logOptions.file), function (err, data) {
       if (err) {
         return callback([])
       }
