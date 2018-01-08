@@ -21,6 +21,7 @@ var execute = function(command) {
 
   var gitExecute = function(command, callback) {
     var command = 'git ' + command
+    // console.log('EXECUTE: ' + command)
 
     exec(command, { cwd: path }, function(error, result) {
       if (error) {
@@ -50,15 +51,21 @@ var execute = function(command) {
       logOptions = {}
     }
 
-    let file = logOptions.file || ''
+    let gitCall = `--pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*},"`
 
-    let gitCall = `--pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*}," ${file}.json`
+    if (logOptions.branch) {
+      gitCall += ` ${logOptions.branch}`
+    }
+
+    if (logOptions.file) {
+      gitCall += ` ${logOptions.file}.json`
+    }
 
     fs.stat(paths.join(path, file), function(err, data) {
       if (err) {
         return callback([])
       }
-
+      
       gitExecute('log ' + gitCall, function(data) {
         
           // replace *'s with "'s
@@ -171,7 +178,17 @@ var execute = function(command) {
 
   var branchExists = function(branch, callback) {
     gitExecute('branch --list ' + branch, function(result) {
-      callback(result)
+      if (!result) {
+        gitExecute('branch --remote', function(remoteResult) {
+          if (remoteResult.indexOf(branch) > -1) {
+            callback(branch)
+          } else {
+            callback(null)
+          }
+        })
+      } else {
+        callback(result)
+      }
     })
   }
 
