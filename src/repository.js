@@ -1,6 +1,8 @@
 var exec = require('child_process').exec
 var mkdirp = require('mkdirp')
 var Promise = require('promise')
+var paths = require('path')
+var fs = require('fs')
 
 module.exports = function(path) {
   var path = path
@@ -59,17 +61,24 @@ var execute = function(command) {
       gitCall += ` ${logOptions.file}.json`
     }
 
-    gitExecute('log ' + gitCall, function(data) {
-      // replace *'s with "'s
-      var quoted = data.split('*').join('"')
-
-      // remove trailing ,
-      var commaRemoved = quoted.slice(0, -1)
-
-      // add array [ & ]
-      var jsonString = '[' + commaRemoved + ']'
-
-      callback(JSON.parse(jsonString))
+    fs.stat(paths.join(path, file), function(err, data) {
+      if (err) {
+        return callback([])
+      }
+      
+      gitExecute('log ' + gitCall, function(data) {
+        
+          // replace *'s with "'s
+          var quoted = data.split('*').join('"')
+    
+          // remove trailing ,
+          var commaRemoved = quoted.slice(0, -1)
+    
+          // add array [ & ]
+          var jsonString = '[' + commaRemoved + ']'
+    
+          callback(JSON.parse(jsonString))
+        })
     })
   }
 
