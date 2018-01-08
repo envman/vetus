@@ -61,24 +61,24 @@ var execute = function(command) {
       gitCall += ` ${logOptions.file}.json`
     }
 
-    fs.stat(paths.join(path, file), function(err, data) {
+    fs.stat(paths.join(path, file), function (err, data) {
       if (err) {
         return callback([])
       }
-      
-      gitExecute('log ' + gitCall, function(data) {
-        
-          // replace *'s with "'s
-          var quoted = data.split('*').join('"')
-    
-          // remove trailing ,
-          var commaRemoved = quoted.slice(0, -1)
-    
-          // add array [ & ]
-          var jsonString = '[' + commaRemoved + ']'
-    
-          callback(JSON.parse(jsonString))
-        })
+
+      gitExecute('log ' + gitCall, function (data) {
+
+        // replace *'s with "'s
+        var quoted = data.split('*').join('"')
+
+        // remove trailing ,
+        var commaRemoved = quoted.slice(0, -1)
+
+        // add array [ & ]
+        var jsonString = '[' + commaRemoved + ']'
+
+        callback(JSON.parse(jsonString))
+      })
     })
   }
 
