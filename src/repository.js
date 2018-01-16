@@ -62,7 +62,7 @@ var execute = function(command) {
     }
 
     fs.stat(paths.join(path, logOptions.file), function (err, data) {
-      if (err) {
+      if (logOptions.file && err) {
         return callback([])
       }
 
