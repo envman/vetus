@@ -58,7 +58,8 @@ var execute = function(command) {
     }
 
     if (logOptions.file) {
-      gitCall += ` ${logOptions.file}.json`
+      logOptions.file = `${logOptions.file}.json`
+      gitCall += ` ${logOptions.file}`
     }
 
     fs.stat(paths.join(path, logOptions.file), function (err, data) {
