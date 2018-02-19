@@ -69,12 +69,12 @@ var execute = function(command) {
         }
 
         log(gitCall, function (data) {
-          callback(jsonFormat(data))
+          jsonFormat(data, callback)
         })
       })
     } else {
       log(gitCall, function (data) {
-        callback(jsonFormat(data))
+        jsonFormat(data, callback)
       })
     }
   }
