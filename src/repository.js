@@ -180,6 +180,12 @@ var execute = function(command) {
     })
   }
 
+  var mergeTheirs = function(branch, callback) {
+    gitExecute('merge -X theirs ' + branch, function(result, err) {
+      callback(result, err)
+    })
+  }
+
   var mergeBase = function(branch, mergeToBranch, callback) {
     gitExecute('merge-base ' + branch + ' ' + mergeToBranch, function(result, err) {
       callback(result, err)
@@ -230,6 +236,7 @@ var execute = function(command) {
       status: status,
       branchExists : branchExists,
       merge: merge,
+      mergeTheirs: mergeTheirs,
       mergeBase : mergeBase,
       branchList: branchList,
       fetch: fetch,

@@ -40,3 +40,6 @@ temp
 
 # OSX
 .DS_Store
+
+# WebStorm
+.idea/*

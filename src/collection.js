@@ -93,6 +93,22 @@ module.exports = function(options) {
     })
   }
 
+  var mergeTheirs = function(fromBranch, callback) {
+    preCommand(function(exists) {
+      repo.mergeTheirs(fromBranch, function(output, err) {
+        if (err) {
+          repo.mergeTheirs(" --abort", function() {
+            return console.log("Merge conflict : ", output)
+          })
+        } else {
+          repo.push('', () => {
+            callback()
+          })
+        }
+      })
+    })
+  }
+
   var deleteBranch = function(branchToDelete, callback) {
     repo.fetch(function() {
       repo.branchExists(branchToDelete, function(branchExists) {
@@ -284,6 +300,7 @@ module.exports = function(options) {
     save: save,
     createBranch: createBranch,
     merge: merge,
+    mergeTheirs: mergeTheirs,
     branchList: branchList,
     deleteBranch: deleteBranch,
     log: branchLog
