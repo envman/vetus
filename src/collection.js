@@ -82,7 +82,8 @@ module.exports = function(options) {
       repo.merge(fromBranch, function(output, err) {
         if (err) {
           repo.merge(" --abort", function() {
-            return console.log("Merge conflict : ", output)
+            console.log("Merge conflict : ", output)
+            return callback(err)
           })
         } else {
           repo.push('', () => {
@@ -98,7 +99,8 @@ module.exports = function(options) {
       repo.mergeTheirs(fromBranch, function(output, err) {
         if (err) {
           repo.mergeTheirs(" --abort", function() {
-            return console.log("Merge conflict : ", output)
+            console.log("Merge conflict : ", output)
+            return callback(err)
           })
         } else {
           repo.push('', () => {
