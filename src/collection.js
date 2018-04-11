@@ -82,7 +82,25 @@ module.exports = function(options) {
       repo.merge(fromBranch, function(output, err) {
         if (err) {
           repo.merge(" --abort", function() {
-            return console.log("Merge conflict : ", output)
+            console.log("Merge conflict : ", output)
+            return callback(err)
+          })
+        } else {
+          repo.push('', () => {
+            callback()
+          })
+        }
+      })
+    })
+  }
+
+  var mergeTheirs = function(fromBranch, callback) {
+    preCommand(function(exists) {
+      repo.mergeTheirs(fromBranch, function(output, err) {
+        if (err) {
+          repo.mergeTheirs(" --abort", function() {
+            console.log("Merge conflict : ", output)
+            return callback(err)
           })
         } else {
           repo.push('', () => {
@@ -284,6 +302,7 @@ module.exports = function(options) {
     save: save,
     createBranch: createBranch,
     merge: merge,
+    mergeTheirs: mergeTheirs,
     branchList: branchList,
     deleteBranch: deleteBranch,
     log: branchLog
