@@ -215,7 +215,7 @@ var execute = function(command) {
   }
 
   var fetch = function(callback) {
-    gitExecute('fetch', callback)
+    gitExecute('fetch -all', callback)
   }
 
   return {
