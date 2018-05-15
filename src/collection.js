@@ -56,7 +56,7 @@ module.exports = function(options) {
       }
 
       Promise.all(promise).then(() => {
-        preCommand(function () {
+        preCommandAlt(function() {
           let proms = Object.getOwnPropertyNames(collection.data).map(f => new Promise((done, fail) => {
             fs.writeFile(path.join(userroot, `${f}.json`), JSON.stringify(collection.data[f], null, 2), () => {
               done()
@@ -64,9 +64,11 @@ module.exports = function(options) {
           }))
 
           Promise.all(proms).then(() => {
-            addAndCommit(message, function (commited) {
-              if (commited) {
-                repo.push(" origin " + branch, callback)
+            addAndCommit(message, function (committed) {
+              if (committed) {
+                pull(function() {
+                  repo.push(" origin " + branch, callback)
+                })
               } else {
                 callback()
               }
@@ -277,6 +279,31 @@ module.exports = function(options) {
                       .then(() => {
                           pull(callback)
                       })
+                  } else {
+                      return callback(exists)
+                  }
+                })
+              }
+            })
+
+          })
+        })
+      })
+  }
+
+  var preCommandAlt = function(callback) {
+    checkPaths([bareroot, userroot])
+      .then(() => {
+        checkBareGit(function() {
+          checkUserGit(function() {
+            repo.isNew(function(isNew) {
+              if (isNew) {
+                callback(true)
+              } else {
+                changeBranch(branch ,function(exists) {
+                  if (exists) {
+                    repo.execute('fetch --prune')
+                      .then(() => callback())
                   } else {
                       return callback(exists)
                   }
