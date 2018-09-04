@@ -15,7 +15,6 @@
   "author": "Robert Gill",
   "license": "MIT",
   "dependencies": {
-    "chai": "^3.5.0",
     "mkdirp": "^0.5.1",
     "promise": "^7.1.1",
     "rimraf": "^2.5.4"
@@ -23,5 +22,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/envman/vetus"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^5.2.0"
   }
 }
