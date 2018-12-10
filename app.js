@@ -1,7 +1,7 @@
-let path = require('path')
-let fs = require('fs')
+const path = require('path')
+const fs = require('fs')
 
-let Collection = require('./src/collection')
+const Collection = require('./src/collection')
 
 module.exports = function(settings) {
 

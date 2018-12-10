@@ -1,11 +1,11 @@
-let assert = require('./assert')
-let fs = require('fs')
-let path = require('path')
-let rimraf = require('rimraf').sync
-let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+const assert = require('./assert')
+const fs = require('fs')
+const path = require('path')
+const rimraf = require('rimraf').sync
+const testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
-let vetus = require('./../app')({ path: testDirectory })
-let framework = new require('./test-framework')
+const vetus = require('./../app')({ path: testDirectory })
+const framework = new require('./test-framework')
 
 describe('Branching tests', function() {
 

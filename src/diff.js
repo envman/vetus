@@ -1,4 +1,4 @@
-let diff = function(base, left, right) {
+const diff = function(base, left, right) {
   let properties = getUniqueProperties(base, left, right)
 
   let difference = {
@@ -77,7 +77,7 @@ let diff = function(base, left, right) {
   return difference
 }
 
-let getUniqueProperties = function(base, left, right) {
+const getUniqueProperties = function(base, left, right) {
   let baseProperties = Object.getOwnPropertyNames(base)
   let leftProperties = Object.getOwnPropertyNames(left)
   let rightProperties = Object.getOwnPropertyNames(right)
@@ -86,11 +86,11 @@ let getUniqueProperties = function(base, left, right) {
   return arrayUnique(properties)
 }
 
-let isObject = function(property) {
+const isObject = function(property) {
   return typeof(property) === 'object'
 }
 
-let arrayUnique = function(a) {
+const arrayUnique = function(a) {
     return a.reduce(function(p, c) {
         if (p.indexOf(c) < 0) p.push(c)
         return p

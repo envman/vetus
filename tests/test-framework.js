@@ -1,8 +1,8 @@
-let path = require('path')
-let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
-let Promise = require('promise')
+const path = require('path')
+const testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+const Promise = require('promise')
 
-let vetus = require('./../app')({ path: testDirectory })
+const vetus = require('./../app')({ path: testDirectory })
 
 module.exports.collection = function(opts) {
   return new Promise((resolve, reject) => {

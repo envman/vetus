@@ -1,11 +1,11 @@
-let exec = require('child_process').exec
-let mkdirp = require('mkdirp')
-let Promise = require('promise')
-let paths = require('path')
-let fs = require('fs')
+const exec = require('child_process').exec
+const mkdirp = require('mkdirp')
+const Promise = require('promise')
+const paths = require('path')
+const fs = require('fs')
 
 module.exports = function (path) {
-  let execute = function (command) {
+  const execute = function (command) {
     return new Promise((resolve, reject) => {
       gitExecute(command, (result, err) => {
         if (err) {
@@ -17,7 +17,7 @@ module.exports = function (path) {
     })
   }
 
-  let gitExecute = function (command, callback) {
+  const gitExecute = function (command, callback) {
     command = 'git ' + command
 
     exec(command, {cwd: path}, function (error, result) {
@@ -34,15 +34,15 @@ module.exports = function (path) {
     })
   }
 
-  let config = function (data, callback) {
+  const config = function (data, callback) {
     gitExecute('config ' + data, callback)
   }
 
-  let commit = function (message, callback) {
+  const commit = function (message, callback) {
     gitExecute(`commit -m "${message}"`, callback)
   }
 
-  let jsonLog = function (logOptions, callback) {
+  const jsonLog = function (logOptions, callback) {
     if (typeof logOptions === 'function') {
       callback = logOptions
       logOptions = {}
@@ -84,7 +84,7 @@ module.exports = function (path) {
     }
   }
 
-  let jsonFormat = function (data, callback) {
+  const jsonFormat = function (data, callback) {
     // replace *'s with "'s
     let quoted = data.split('*').join('"')
 
@@ -97,7 +97,7 @@ module.exports = function (path) {
     callback(JSON.parse(jsonString))
   }
 
-  let log = function (logOptions, callback) {
+  const log = function (logOptions, callback) {
     if (typeof logOptions === 'function') {
       callback = logOptions
       logOptions = ''
@@ -106,7 +106,7 @@ module.exports = function (path) {
     gitExecute('log ' + logOptions, callback)
   }
 
-  let isNew = function (callback) {
+  const isNew = function (callback) {
     exec('git log', {cwd: path}, function (error) {
       if (error && error.toString().indexOf('does not have any commits yet') > -1) {
         callback(true)
@@ -116,13 +116,13 @@ module.exports = function (path) {
     })
   }
 
-  let initBare = function (callback) {
+  const initBare = function (callback) {
     mkdirp(path, function (err) {
       gitExecute('init --bare', callback)
     })
   }
 
-  let init = function (callback) {
+  const init = function (callback) {
     mkdirp(path, function (err) {
       gitExecute('init', callback)
     })
@@ -130,25 +130,25 @@ module.exports = function (path) {
 
   // Used -d and not -D as to not force deletion in case remote and local
   // not merged properly. If no problems, should work as expected
-  let deleteBranch = function (branch, callback) {
+  const deleteBranch = function (branch, callback) {
     gitExecute('branch -D ' + branch, function () {
       gitExecute('push origin --delete ' + branch, callback)
     })
   }
 
-  let pull = function (branch, callback) {
+  const pull = function (branch, callback) {
     gitExecute(`pull ${branch}`, callback)
   }
 
-  let push = function (options, callback) {
+  const push = function (options, callback) {
     gitExecute(`push ${options}`, callback)
   }
 
-  let addAll = function (callback) {
+  const addAll = function (callback) {
     gitExecute('add -A', callback)
   }
 
-  let clone = function (location, callback) {
+  const clone = function (location, callback) {
     mkdirp(path, function (err) {
       if (err) {
         return callback(null, err)
@@ -158,39 +158,39 @@ module.exports = function (path) {
     })
   }
 
-  let reset = function (type, callback) {
+  const reset = function (type, callback) {
     gitExecute('reset -- ' + type, callback)
   }
 
-  let checkout = function (branch, callback) {
+  const checkout = function (branch, callback) {
     gitExecute('checkout ' + branch, callback)
   }
 
-  let branch = function (branch, callback) {
+  const branch = function (branch, callback) {
     gitExecute('branch ' + branch, callback)
   }
 
-  let clean = function (callback) {
+  const clean = function (callback) {
     gitExecute('clean -f', callback)
   }
 
-  let status = function (callback) {
+  const status = function (callback) {
     gitExecute('status', callback)
   }
 
-  let merge = function (branch, callback) {
+  const merge = function (branch, callback) {
     gitExecute('merge ' + branch, callback)
   }
 
-  let mergeTheirs = function (branch, callback) {
+  const mergeTheirs = function (branch, callback) {
     gitExecute('merge -X theirs ' + branch, callback)
   }
 
-  let mergeBase = function (branch, mergeToBranch, callback) {
+  const mergeBase = function (branch, mergeToBranch, callback) {
     gitExecute('merge-base ' + branch + ' ' + mergeToBranch, callback)
   }
 
-  let branchExists = function (branch, callback) {
+  const branchExists = function (branch, callback) {
     gitExecute('fetch --all', function () {
       gitExecute('branch --list ' + branch, function (result) {
         if (!result) {
@@ -208,11 +208,11 @@ module.exports = function (path) {
     })
   }
 
-  let branchList = function (callback) {
+  const branchList = function (callback) {
     gitExecute('branch --all', callback)
   }
 
-  let fetch = function (callback) {
+  const fetch = function (callback) {
     gitExecute('fetch', callback)
   }
 

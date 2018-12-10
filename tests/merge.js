@@ -1,11 +1,11 @@
-let assert = require('chai').assert
-let fs = require('fs')
-let path = require('path')
-let rimraf = require('rimraf').sync
+const assert = require('chai').assert
+const fs = require('fs')
+const path = require('path')
+const rimraf = require('rimraf').sync
 
-let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+const testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
-let framework = new require('./test-framework')
+const framework = new require('./test-framework')
 
 describe('(Basic) Merging', function() {
 

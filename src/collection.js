@@ -1,12 +1,12 @@
-let path = require('path')
-let Repository = require('./repository')
-let fs = require('fs')
-let Promise = require('promise')
-let mkdirp = require('mkdirp')
-let rimraf = require('rimraf')
+const path = require('path')
+const Repository = require('./repository')
+const fs = require('fs')
+const Promise = require('promise')
+const mkdirp = require('mkdirp')
+const rimraf = require('rimraf')
 
-let write = Promise.denodeify(fs.writeFile)
-let read = Promise.denodeify(fs.readFile)
+const write = Promise.denodeify(fs.writeFile)
+const read = Promise.denodeify(fs.readFile)
 
 module.exports = function(options) {
   let root = options.path
@@ -44,7 +44,7 @@ module.exports = function(options) {
 
           collection.data = data
           callback()
-        }).catch(callback)
+        }).catch(err => callback(null, err))
       })
     })
   }
@@ -94,7 +94,7 @@ module.exports = function(options) {
         if (err) {
           repo.merge("--abort", function() {
             console.log("Merge conflict : ", err)
-            return callback(err)
+            return callback(null, err)
           })
         } else {
           repo.push('', () => {
