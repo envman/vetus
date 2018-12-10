@@ -1,16 +1,15 @@
-var assert = require('chai').assert
-var fs = require('fs')
-var path = require('path')
-var rimraf = require('rimraf').sync
+let assert = require('chai').assert
+let fs = require('fs')
+let path = require('path')
+let rimraf = require('rimraf').sync
 
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
-var vetus = require('./../app')({ path: testDirectory })
-var framework = new require('./test-framework')
+let framework = new require('./test-framework')
 
 describe('Updating a collection', function() {
 
-  var testData
+  let testData
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -19,11 +18,11 @@ describe('Updating a collection', function() {
 
     fs.mkdirSync(testDirectory)
 
-    var data = {
+    let data = {
       first: {name: 'first'}
     }
 
-    var updated = {
+    let updated = {
       first: {name: 'updated'}
     }
 

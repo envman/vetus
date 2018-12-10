@@ -1,17 +1,17 @@
-var assert = require('./assert')
-var fs = require('fs')
-var path = require('path')
-var rimraf = require('rimraf').sync
+let assert = require('./assert')
+let fs = require('fs')
+let path = require('path')
+let rimraf = require('rimraf').sync
 
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
-var vetus = require('./../app')({ path: testDirectory })
-var framework = require('./test-framework')
+let vetus = require('./../app')({ path: testDirectory })
+let framework = require('./test-framework')
 
 describe('(Basic) Conflicts', function() {
 
-  var branchData
-  var masterData
+  let branchData
+  let masterData
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -20,16 +20,16 @@ describe('(Basic) Conflicts', function() {
 
     fs.mkdirSync(testDirectory)
 
-    var data1 = {
+    let data1 = {
       first: { name: 'first' }
     }
 
-    var data2 = {
+    let data2 = {
       first: { name: 'updated' },
       second: {name: 'second'}
     }
 
-    var data3 = {
+    let data3 = {
       first: { name: 'conflict' },
     }
 

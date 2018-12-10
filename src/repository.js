@@ -1,31 +1,28 @@
-var exec = require('child_process').exec
-var mkdirp = require('mkdirp')
-var Promise = require('promise')
-var paths = require('path')
-var fs = require('fs')
+let exec = require('child_process').exec
+let mkdirp = require('mkdirp')
+let Promise = require('promise')
+let paths = require('path')
+let fs = require('fs')
 
-module.exports = function(path) {
-  var path = path
-
-var execute = function(command) {
-    return new Promise((fulfill, reject) => {
-      gitExecute(command, function(result, err) {
+module.exports = function (path) {
+  let execute = function (command) {
+    return new Promise((resolve, reject) => {
+      gitExecute(command, (result, err) => {
         if (err) {
           return reject(err)
         }
 
-        fulfill(result)
+        resolve(result)
       })
     })
   }
 
-  var gitExecute = function(command, callback) {
-    var command = 'git ' + command
-    // console.log('EXECUTE: ' + command)
+  let gitExecute = function (command, callback) {
+    command = 'git ' + command
 
-    exec(command, { cwd: path }, function(error, result) {
-      if (error) {
-        console.log("Error with command - " + command)
+    exec(command, {cwd: path}, function (error, result) {
+      if (error && !error.toString().includes(`Couldn't find remote ref master`)) {
+        console.log('Error with command -', command)
         console.log('In Path', path)
         console.log(error)
 
@@ -37,15 +34,15 @@ var execute = function(command) {
     })
   }
 
-  var config = function(data, callback) {
+  let config = function (data, callback) {
     gitExecute('config ' + data, callback)
   }
 
-  var commit = function(message, callback) {
-    gitExecute('commit -m "' + message + '"', callback)
+  let commit = function (message, callback) {
+    gitExecute(`commit -m "${message}"`, callback)
   }
 
-  var jsonLog = function(logOptions, callback) {
+  let jsonLog = function (logOptions, callback) {
     if (typeof logOptions === 'function') {
       callback = logOptions
       logOptions = {}
@@ -68,44 +65,49 @@ var execute = function(command) {
           return callback([])
         }
 
-        log(gitCall, function (data) {
+        log(gitCall, function (data, error) {
+          if (error || !data) {
+            return callback(null, error || 'No Log')
+          }
+
           jsonFormat(data, callback)
         })
       })
     } else {
-      log(gitCall, function (data) {
+      log(gitCall, function (data, error) {
+        if (error) {
+          return callback(null, error)
+        }
+
         jsonFormat(data, callback)
       })
     }
   }
 
-  var jsonFormat = function(data, callback) {
+  let jsonFormat = function (data, callback) {
     // replace *'s with "'s
-    var quoted = data.split('*').join('"')
+    let quoted = data.split('*').join('"')
 
     // remove trailing ,
-    var commaRemoved = quoted.slice(0, -1)
+    let commaRemoved = quoted.slice(0, -1)
 
     // add array [ & ]
-    var jsonString = '[' + commaRemoved + ']'
+    let jsonString = '[' + commaRemoved + ']'
 
     callback(JSON.parse(jsonString))
   }
 
-  var log = function(logOptions, callback) {
+  let log = function (logOptions, callback) {
     if (typeof logOptions === 'function') {
       callback = logOptions
       logOptions = ''
     }
 
-    gitExecute('log ' + logOptions, function(result) {
-      callback(result)
-    })
+    gitExecute('log ' + logOptions, callback)
   }
 
-  let isNew = function(callback) {
-    exec('git log', {cwd: path}, function(error, result) {
-      // console.log(error.toString())
+  let isNew = function (callback) {
+    exec('git log', {cwd: path}, function (error) {
       if (error && error.toString().indexOf('does not have any commits yet') > -1) {
         callback(true)
       } else {
@@ -114,86 +116,82 @@ var execute = function(command) {
     })
   }
 
-  var initBare = function(callback) {
-    mkdirp(path, function(err) {
+  let initBare = function (callback) {
+    mkdirp(path, function (err) {
       gitExecute('init --bare', callback)
     })
   }
 
-  var init = function(callback) {
-    mkdirp(path, function(err) {
+  let init = function (callback) {
+    mkdirp(path, function (err) {
       gitExecute('init', callback)
     })
   }
 
   // Used -d and not -D as to not force deletion in case remote and local
   // not merged properly. If no problems, should work as expected
-  var deleteBranch = function(branch, callback) {
-    gitExecute('branch -D ' + branch, function(err) {
+  let deleteBranch = function (branch, callback) {
+    gitExecute('branch -D ' + branch, function () {
       gitExecute('push origin --delete ' + branch, callback)
     })
   }
 
-  var pull = function(branch, callback) {
-    gitExecute('pull ' + branch, callback)
+  let pull = function (branch, callback) {
+    gitExecute(`pull ${branch}`, callback)
   }
 
-  var push = function(options, callback) {
-    gitExecute('push' + options, callback)
+  let push = function (options, callback) {
+    gitExecute(`push ${options}`, callback)
   }
 
-  var addAll = function(callback) {
+  let addAll = function (callback) {
     gitExecute('add -A', callback)
   }
 
-  var clone = function(location, callback) {
-    mkdirp(path, function(err) {
-        gitExecute('clone "' + location + '" . ', callback)
+  let clone = function (location, callback) {
+    mkdirp(path, function (err) {
+      if (err) {
+        return callback(null, err)
+      }
+
+      gitExecute(`clone "${location}" .`, callback)
     })
   }
 
-  var reset = function(type, callback) {
-    gitExecute('reset --' + type, callback)
+  let reset = function (type, callback) {
+    gitExecute('reset -- ' + type, callback)
   }
 
-  var checkout = function(branch, callback) {
+  let checkout = function (branch, callback) {
     gitExecute('checkout ' + branch, callback)
   }
 
-  var branch = function(branch, callback) {
+  let branch = function (branch, callback) {
     gitExecute('branch ' + branch, callback)
   }
 
-  var clean = function(callback) {
+  let clean = function (callback) {
     gitExecute('clean -f', callback)
   }
 
-  var status = function(callback) {
-    gitExecute('status', function(result) {
-        callback(result)
-    })
+  let status = function (callback) {
+    gitExecute('status', callback)
   }
 
-  var merge = function(branch, callback) {
-    gitExecute('merge ' + branch, function(result, err) {
-      callback(result, err)
-    })
+  let merge = function (branch, callback) {
+    gitExecute('merge ' + branch, callback)
   }
 
-  var mergeTheirs = function(branch, callback) {
-    gitExecute('merge -X theirs ' + branch, function(result, err) {
-      callback(result, err)
-    })
+  let mergeTheirs = function (branch, callback) {
+    gitExecute('merge -X theirs ' + branch, callback)
   }
 
-  var mergeBase = function(branch, mergeToBranch, callback) {
-    gitExecute('merge-base ' + branch + ' ' + mergeToBranch, function(result, err) {
-      callback(result, err)
-    })
+  let mergeBase = function (branch, mergeToBranch, callback) {
+    gitExecute('merge-base ' + branch + ' ' + mergeToBranch, callback)
   }
 
-  var branchExists = function(branch, callback) {
-    gitExecute('fetch --all', function(result) {
+  let branchExists = function (branch, callback) {
+    gitExecute('fetch --all', function () {
       gitExecute('branch --list ' + branch, function (result) {
         if (!result) {
           gitExecute('branch --remote', function (remoteResult) {
@@ -210,40 +208,38 @@ var execute = function(command) {
     })
   }
 
-  var branchList = function(callback) {
-    gitExecute('branch --all', function(result) {
-      callback(result)
-    })
+  let branchList = function (callback) {
+    gitExecute('branch --all', callback)
   }
 
-  var fetch = function(callback) {
+  let fetch = function (callback) {
     gitExecute('fetch', callback)
   }
 
   return {
-      commit: commit,
-      jsonLog: jsonLog,
-      log: log,
-      init: init,
-      pull: pull,
-      push: push,
-      addAll: addAll,
-      clone: clone,
-      initBare: initBare,
-      config: config,
-      reset: reset,
-      checkout: checkout,
-      branch: branch,
-      clean: clean,
-      status: status,
-      branchExists : branchExists,
-      merge: merge,
-      mergeTheirs: mergeTheirs,
-      mergeBase : mergeBase,
-      branchList: branchList,
-      fetch: fetch,
-      deleteBranch: deleteBranch,
-      execute: execute,
-      isNew: isNew
-    }
+    commit: commit,
+    jsonLog: jsonLog,
+    log: log,
+    init: init,
+    pull: pull,
+    push: push,
+    addAll: addAll,
+    clone: clone,
+    initBare: initBare,
+    config: config,
+    reset: reset,
+    checkout: checkout,
+    branch: branch,
+    clean: clean,
+    status: status,
+    branchExists: branchExists,
+    merge: merge,
+    mergeTheirs: mergeTheirs,
+    mergeBase: mergeBase,
+    branchList: branchList,
+    fetch: fetch,
+    deleteBranch: deleteBranch,
+    execute: execute,
+    isNew: isNew
+  }
 }

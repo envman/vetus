@@ -1,16 +1,14 @@
-var assert = require('chai').assert
-var fs = require('fs')
-var path = require('path')
-var rimraf = require('rimraf').sync
+let assert = require('chai').assert
+let fs = require('fs')
+let path = require('path')
+let rimraf = require('rimraf').sync
 
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
-var framework = new require('./test-framework')
-
-var vetus = require('./../app')({ path: testDirectory })
+let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+let framework = new require('./test-framework')
 
 describe('When multiple users are using the system', function() {
 
-  var testData
+  let testData
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -19,7 +17,7 @@ describe('When multiple users are using the system', function() {
 
     fs.mkdirSync(testDirectory)
 
-    var data = {
+    let data = {
       first: {
         name: 'first'
       }
@@ -27,10 +25,10 @@ describe('When multiple users are using the system', function() {
 
     framework.collection({name: 'test'})
       .then(c => framework.save(c, data))
-      .then(c => framework.collection({name: 'test', user: 'rob'}))
+      .then(() => framework.collection({name: 'test', user: 'rob'}))
       .then(c => framework.load(c))
       .then(c => testData = c.data)
-      .then(c => done())
+      .then(() => done())
   })
 
   after(function() {

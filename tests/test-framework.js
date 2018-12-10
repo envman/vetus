@@ -1,16 +1,16 @@
-var path = require('path')
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
-var Promise = require('promise')
+let path = require('path')
+let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+let Promise = require('promise')
 
-var vetus = require('./../app')({ path: testDirectory })
+let vetus = require('./../app')({ path: testDirectory })
 
 module.exports.collection = function(opts) {
-  return new Promise((done, err) => {
+  return new Promise((resolve, reject) => {
     opts = opts || {}
     opts.name = opts.name || 'test'
 
     vetus.collection(opts, function(collection) {
-      done(collection)
+      resolve(collection)
     })
   })
 }
@@ -53,10 +53,13 @@ module.exports.createBranch = function(collection, newbranch) {
 }
 
 module.exports.merge = function(collection, fromBranch) {
-  return new Promise((done, err) => {
+  return new Promise((resolve, reject) => {
+    collection.merge(fromBranch, function(err) {
+      if (err) {
+        return reject(err)
+      }
 
-    collection.merge(fromBranch, function() {
-      done(collection)
+      resolve(collection)
     })
   })
 }

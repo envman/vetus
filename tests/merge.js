@@ -1,17 +1,15 @@
-var assert = require('chai').assert
-var fs = require('fs')
-var path = require('path')
-var rimraf = require('rimraf').sync
+let assert = require('chai').assert
+let fs = require('fs')
+let path = require('path')
+let rimraf = require('rimraf').sync
 
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+let testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
-var vetus = require('./../app')({ path: testDirectory })
-var framework = new require('./test-framework')
+let framework = new require('./test-framework')
 
 describe('(Basic) Merging', function() {
 
-  var masterData
-  var masterLog
+  let masterData
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -20,18 +18,18 @@ describe('(Basic) Merging', function() {
 
     fs.mkdirSync(testDirectory)
 
-    var data1 = { first: { name : 'first' } }
-    var data2 = { first: { name : 'updated' } }
+    let data1 = { first: { name : 'first' } }
+    let data2 = { first: { name : 'updated' } }
 
     framework.collection({name: 'test'})
       .then(c => framework.save(c, data1))
       .then(c => framework.createBranch(c, 'dev'))
       .then(c => framework.save(c, data2))
-      .then(c => framework.collection({name: 'test'}))
+      .then(() => framework.collection({name: 'test'}))
       .then(c => framework.merge(c, 'dev'))
       .then(c => framework.load(c))
       .then(c => masterData = c.data)
-      .then(c => done())
+      .then(() => done())
   })
 
   after(function() {

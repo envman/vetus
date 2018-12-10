@@ -1,4 +1,4 @@
-var assert = require('chai').assert
+let assert = require('chai').assert
 
 module.exports = function(condition, message) {
   assert(condition, message)
