@@ -1,89 +1,89 @@
-var path = require('path')
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
-var Promise = require('promise')
+const path = require('path')
+const testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+const Promise = require('promise')
 
-var vetus = require('./../app')({ path: testDirectory })
+const vetus = require('./../app')({ path: testDirectory })
 
 module.exports.collection = function(opts) {
-  return new Promise((done, err) => {
+  return new Promise((resolve, reject) => {
     opts = opts || {}
     opts.name = opts.name || 'test'
 
     vetus.collection(opts, function(collection) {
-      done(collection)
+      resolve(collection)
     })
   })
 }
 
 module.exports.save = function(collection, data) {
-  return new Promise((done, err) => {
+  return new Promise((resolve, reject) => {
     collection.data = data
-
-    collection.save('commit', function(saveErr) {
-      done(collection)
+    collection.save('commit', function(result, err) {
+      if (err) return reject(err)
+      resolve(collection)
     })
   })
 }
 
 module.exports.load = function(collection) {
-  return new Promise((done, err) => {
-
-    collection.load(function() {
-      done(collection)
+  return new Promise((resolve, reject) => {
+    collection.load(function(result, err) {
+      if (err) return reject(err)
+      resolve(collection)
     })
   })
 }
 
 module.exports.history = function(collection) {
-  return new Promise((done, err) => {
-
-    collection.history(function(history) {
-      done(history)
+  return new Promise((resolve, reject) => {
+    collection.history(function(history, err) {
+      if (err) return reject(err)
+      resolve(history)
     })
   })
 }
 
 module.exports.createBranch = function(collection, newbranch) {
-  return new Promise((done, err) => {
-
-    collection.createBranch(newbranch, function() {
-      done(collection)
+  return new Promise((resolve, reject) => {
+    collection.createBranch(newbranch, function(result, err) {
+      if (err) return reject(err)
+      resolve(collection)
     })
   })
 }
 
 module.exports.merge = function(collection, fromBranch) {
-  return new Promise((done, err) => {
-
-    collection.merge(fromBranch, function() {
-      done(collection)
+  return new Promise((resolve, reject) => {
+    collection.merge(fromBranch, function(err) {
+      if (err) return reject(err)
+      resolve(collection)
     })
   })
 }
 
 module.exports.branchList = function(collection) {
-  return new Promise((done, err) => {
-
-    collection.branchList(function(list) {
-      done({ collection: collection, list: list })
+  return new Promise((resolve, reject) => {
+    collection.branchList(function(list, err) {
+      if (err) return reject(err)
+      resolve({ collection: collection, list: list })
     })
   })
 }
 
 module.exports.changeBranch = function(collection, newbranch) {
-  return new Promise((done, err) => {
-
-    collection.changeBranch(newbranch, function() {
-      done(collection)
+  return new Promise((resolve, reject) => {
+    collection.changeBranch(newbranch, function(result, err) {
+      if (err) return reject(err)
+      resolve(collection)
     })
   })
 }
 
 module.exports.deleteBranch = function(collection, branchToDelete) {
-  return new Promise((done, err) => {
-
-    collection.deleteBranch(branchToDelete, function() {
-      done(collection)
+  return new Promise((resolve, reject) => {
+    collection.deleteBranch(branchToDelete, function(result, err) {
+      if (err) return reject(err)
+      resolve(collection)
     })
   })
 }

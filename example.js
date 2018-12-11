@@ -1,4 +1,4 @@
-var vetus = require('./app')
+let vetus = require('./app')
 
 // Create a collection
 vetus.collection({ name: 'collection-name', user: 'user-name' }, function(collection) {

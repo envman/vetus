@@ -1,15 +1,14 @@
-var assert = require('./assert')
-var fs = require('fs')
-var path = require('path')
-var rimraf = require('rimraf').sync
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+const assert = require('./assert')
+const fs = require('fs')
+const path = require('path')
+const rimraf = require('rimraf').sync
+const testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
-var vetus = require('./../app')({ path: testDirectory })
-var framework = new require('./test-framework')
+const framework = new require('./test-framework')
 
 describe('When using a collection', function() {
 
-  var data
+  let data
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -17,13 +16,13 @@ describe('When using a collection', function() {
     }
     fs.mkdirSync(testDirectory)
 
-    var data1 = {
+    let data1 = {
       first: { name: 'first' },
       original: { name: 'not updated' },
       deleted: { fun: 'oh no' }
     }
 
-    var data2 = {
+    let data2 = {
       first: { name: 'updated' },
       original: { name: 'not updated' },
       second: { test: 'fun' }
@@ -32,7 +31,7 @@ describe('When using a collection', function() {
     framework.collection({name: 'test'})
       .then(c => framework.save(c, data1))
       .then(c => framework.save(c, data2))
-      .then(c => framework.collection({name: 'test'}))
+      .then(() => framework.collection({name: 'test'}))
       .then(c => framework.load(c))
       .then(c => data = c.data)
       .nodeify(done)

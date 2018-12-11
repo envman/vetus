@@ -1,18 +1,17 @@
-var assert = require('./assert')
-var fs = require('fs')
-var path = require('path')
-var rimraf = require('rimraf').sync
-var testDirectory = path.join(__dirname, '..', '..', 'test-temp')
+const assert = require('./assert')
+const fs = require('fs')
+const path = require('path')
+const rimraf = require('rimraf').sync
+const testDirectory = path.join(__dirname, '..', '..', 'test-temp')
 
-var vetus = require('./../app')({ path: testDirectory })
-var framework = new require('./test-framework')
+const vetus = require('./../app')({ path: testDirectory })
+const framework = new require('./test-framework')
 
 describe('Branching tests', function() {
 
-  var branchData
-  var masterData
-  var collection
-  var list
+  let branchData
+  let masterData
+  let list
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -21,11 +20,11 @@ describe('Branching tests', function() {
 
     fs.mkdirSync(testDirectory)
 
-    var data1 = {
+    let data1 = {
       first: { name: 'first' }
     }
 
-    var data2 = {
+    let data2 = {
       first: { name: 'updated' }
     }
 
@@ -33,10 +32,10 @@ describe('Branching tests', function() {
       .then(c => framework.save(c, data1))
       .then(c => framework.createBranch(c, 'dev'))
       .then(c => framework.save(c, data2))
-      .then(c => framework.collection({name: 'test', branch: 'dev'}))
+      .then(() => framework.collection({name: 'test', branch: 'dev'}))
       .then(c => framework.load(c))
       .then(c => branchData = c.data)
-      .then(c => framework.collection({name: 'test'}))
+      .then(() => framework.collection({name: 'test'}))
       .then(c => framework.load(c))
       .then(c => framework.branchList(c))
       .then(d => {list = d.list; masterData = d.collection.data})

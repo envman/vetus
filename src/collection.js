@@ -1,33 +1,38 @@
-var path = require('path')
-var Repository = require('./repository')
-var fs = require('fs')
-var Promise = require('promise')
-var mkdirp = require('mkdirp')
-let rimraf = require('rimraf')
+const path = require('path')
+const Repository = require('./repository')
+const fs = require('fs')
+const Promise = require('promise')
+const mkdirp = require('mkdirp')
+const rimraf = require('rimraf')
 
-var write = Promise.denodeify(fs.writeFile)
-var read = Promise.denodeify(fs.readFile)
+const write = Promise.denodeify(fs.writeFile)
+const read = Promise.denodeify(fs.readFile)
 
 module.exports = function(options) {
-  var root = options.path
-  var user = options.user || '_default'
-  var email = options.email || user + '@vetus'
-  var branch = options.branch || 'master'
+  let root = options.path
+  let user = options.user || '_default'
+  let email = options.email || user + '@vetus'
+  let branch = options.branch || 'master'
 
-  var bareroot = path.join(root, '_bare')
-  var userroot = path.join(root, user)
+  let bareroot = path.join(root, '_bare')
+  let userroot = path.join(root, user)
 
-  var barerepo = new Repository(bareroot)
-  var repo = new Repository(userroot)
+  let barerepo = new Repository(bareroot)
+  let repo = new Repository(userroot)
 
-  var data = {}
+  let data = {}
 
-  var load = function (callback) {
+  let load = function (callback) {
     preCommand(function (branchExists) {
       fs.readdir(userroot, (err, list) => {
-        let proms = list.filter(f => f != '.git').map(f => new Promise((fulfill, reject) => {
+        let proms = list.filter(f => f != '.git').map(f => new Promise((resolve, reject) => {
           fs.readFile(path.join(userroot, f), (err, file) => {
-            fulfill({ name: f.replace('.json', ''), object: JSON.parse(file) })
+            if (err || !file) {
+              console.log('PreCommand error:', err)
+              return reject(err)
+            }
+
+            resolve({ name: f.replace('.json', ''), object: JSON.parse(file) })
           })
         }))
 
@@ -39,12 +44,12 @@ module.exports = function(options) {
 
           collection.data = data
           callback()
-        })
+        }).catch(err => callback(null, err))
       })
     })
   }
 
-  var save = function (message, callback) {
+  let save = function (message, callback) {
     let promise = []
     fs.readdir(userroot, (err, files) => {
       if (files) {
@@ -66,8 +71,12 @@ module.exports = function(options) {
           Promise.all(proms).then(() => {
             addAndCommit(message, function (committed) {
               if (committed) {
-                pull(function() {
-                  repo.push(" origin " + branch, callback)
+                pull(function(result, error) {
+                  if (!error) {
+                    repo.push(`origin ${branch}`, callback)
+                  } else {
+                    callback()
+                  }
                 })
               } else {
                 callback()
@@ -79,13 +88,13 @@ module.exports = function(options) {
     })
   }
 
-  var merge = function(fromBranch, callback) {
-    preCommand(function(exists) {
+  let merge = function(fromBranch, callback) {
+    preCommand(function() {
       repo.merge(fromBranch, function(output, err) {
         if (err) {
-          repo.merge(" --abort", function() {
-            console.log("Merge conflict : ", output)
-            return callback(err)
+          repo.merge("--abort", function() {
+            console.log("Merge conflict : ", err)
+            return callback(null, err)
           })
         } else {
           repo.push('', () => {
@@ -96,8 +105,8 @@ module.exports = function(options) {
     })
   }
 
-  var mergeTheirs = function(fromBranch, callback) {
-    preCommand(function(exists) {
+  let mergeTheirs = function(fromBranch, callback) {
+    preCommand(function() {
       repo.mergeTheirs(fromBranch, function(output, err) {
         if (err) {
           repo.mergeTheirs(" --abort", function() {
@@ -113,22 +122,20 @@ module.exports = function(options) {
     })
   }
 
-  var deleteBranch = function(branchToDelete, callback) {
+  let deleteBranch = function(branchToDelete, callback) {
     repo.fetch(function() {
       repo.branchExists(branchToDelete, function(branchExists) {
         if (!branchExists) {
           return callback()
         }
 
-        repo.deleteBranch(branchToDelete, function(err) {
-          callback(err)
-        })
+        repo.deleteBranch(branchToDelete, callback)
       })
     })
   }
 
-  var createBranch = function(newbranch, callback) {
-    preCommand(function(oldBranchExists) {
+  let createBranch = function(newbranch, callback) {
+    preCommand(function() {
       repo.branchExists(newbranch, function(branchExists){
         if (!branchExists) {
           repo.execute("checkout " + branch)
@@ -144,7 +151,7 @@ module.exports = function(options) {
     })
   }
 
-  var changeBranch = function(newbranch, callback) {
+  let changeBranch = function(newbranch, callback) {
     repo.branchExists(newbranch, function(branchExists){
       if (branchExists) {
         repo.checkout(newbranch, function() {
@@ -158,7 +165,7 @@ module.exports = function(options) {
     })
   }
 
-  var checkBareGit = function(callback) {
+  let checkBareGit = function(callback) {
     baregitExists(bareroot, function(bareExists) {
       if (!bareExists) {
         barerepo.initBare(callback)
@@ -168,7 +175,7 @@ module.exports = function(options) {
     })
   }
 
-  var addAndCommit = function(message, callback) {
+  let addAndCommit = function(message, callback) {
     repo.addAll(function() {
       repo.status(function(status) {
         if (status.indexOf('nothing to commit') < 0) {
@@ -182,7 +189,7 @@ module.exports = function(options) {
     })
   }
 
-  var checkUserGit = function(callback) {
+  let checkUserGit = function(callback) {
     gitExists(userroot, function(userExists) {
       if (!userExists) {
         repo.clone(bareroot, function() {
@@ -198,7 +205,7 @@ module.exports = function(options) {
     })
   }
 
-  var gitExists = function(gitroot, callback) {
+  let gitExists = function(gitroot, callback) {
     fs.lstat(path.join(gitroot, '.git'), function(lstatErr, stats) {
       if (lstatErr) {
         return callback(false)
@@ -208,7 +215,7 @@ module.exports = function(options) {
     })
   }
 
-  var baregitExists = function(gitroot, callback) {
+  let baregitExists = function(gitroot, callback) {
     fs.lstat(path.join(gitroot, 'info'), function(lstatErr, stats) {
       if (lstatErr) {
         return callback(false)
@@ -222,14 +229,13 @@ module.exports = function(options) {
     barerepoInit = result
   })
 
-  var checkPaths = function(paths) {
-    var proms = paths.map(p => new Promise(function(fulfill, reject) {
+  let checkPaths = function(paths) {
+    let proms = paths.map(p => new Promise(function(resolve, reject) {
       fs.lstat(p, function(err, stats) {
-
         if (!stats || !stats.isDirectory()) {
-          mkdirp(p, fulfill)
+          mkdirp(p, resolve)
         } else {
-          fulfill()
+          resolve()
         }
       })
     }))
@@ -237,13 +243,13 @@ module.exports = function(options) {
     return Promise.all(proms)
   }
 
-  var branchList = function(callback) {
+  let branchList = function(callback) {
     preCommand(function() {
       repo.fetch(function() {
         repo.branchList(function(list) {
-          var items = list.split('\n')
+          let items = list.split('\n')
 
-          var items = items
+          items = items
             .filter(b => b !== '')
             .map(b => b.replace('* ', '').replace('  ', '').replace('remotes/origin/', ''))
             .filter(b => !b.startsWith('HEAD'))
@@ -254,17 +260,17 @@ module.exports = function(options) {
     })
   }
 
-  var pull = function(callback) {
-    repo.pull('origin ' + branch, callback)
+  let pull = function(callback) {
+    repo.pull(`origin ${branch}`, callback)
   }
 
-  var branchLog = function(opts, callback) {
+  let branchLog = function(opts, callback) {
     preCommand(function() {
       repo.jsonLog(opts, callback)
     })
   }
 
-  var preCommand = function(callback) {
+  let preCommand = function(callback) {
     checkPaths([bareroot, userroot])
       .then(() => {
         checkBareGit(function() {
@@ -291,7 +297,7 @@ module.exports = function(options) {
       })
   }
 
-  var preCommandAlt = function(callback) {
+  let preCommandAlt = function(callback) {
     checkPaths([bareroot, userroot])
       .then(() => {
         checkBareGit(function() {
@@ -316,18 +322,19 @@ module.exports = function(options) {
       })
   }
 
-  var arrayUnique = function(a) {
+  let arrayUnique = function(a) {
       return a.reduce(function(p, c) {
           if (p.indexOf(c) < 0) p.push(c)
           return p
       }, [])
   }
 
-  var collection = {
+  let collection = {
     data: data,
     load: load,
     save: save,
     createBranch: createBranch,
+    changeBranch: changeBranch,
     merge: merge,
     mergeTheirs: mergeTheirs,
     branchList: branchList,

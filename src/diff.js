@@ -1,17 +1,17 @@
-var diff = function(base, left, right) {
-  var properties = getUniqueProperties(base, left, right)
+const diff = function(base, left, right) {
+  let properties = getUniqueProperties(base, left, right)
 
-  var difference = {
+  let difference = {
 
   }
 
-  for (var property of properties) {
+  for (let property of properties) {
 
     if (Array.isArray(base[property])){
         continue
     }
 
-    var statusField = '$' + property + '_status'
+    let statusField = '$' + property + '_status'
 
     if (isObject(base[property]) || isObject(left[property]) || isObject(right[property])) {
       if (!left[property]) {
@@ -35,8 +35,8 @@ var diff = function(base, left, right) {
       continue
     }
 
-    var status
-    var value
+    let status
+    let value
 
     if (!right[property]) {
       if (!base[property]) {
@@ -77,20 +77,20 @@ var diff = function(base, left, right) {
   return difference
 }
 
-var getUniqueProperties = function(base, left, right) {
-  var baseProperties = Object.getOwnPropertyNames(base)
-  var leftProperties = Object.getOwnPropertyNames(left)
-  var rightProperties = Object.getOwnPropertyNames(right)
+const getUniqueProperties = function(base, left, right) {
+  let baseProperties = Object.getOwnPropertyNames(base)
+  let leftProperties = Object.getOwnPropertyNames(left)
+  let rightProperties = Object.getOwnPropertyNames(right)
 
-  var properties = baseProperties.concat(leftProperties).concat(rightProperties)
+  let properties = baseProperties.concat(leftProperties).concat(rightProperties)
   return arrayUnique(properties)
 }
 
-var isObject = function(property) {
+const isObject = function(property) {
   return typeof(property) === 'object'
 }
 
-var arrayUnique = function(a) {
+const arrayUnique = function(a) {
     return a.reduce(function(p, c) {
         if (p.indexOf(c) < 0) p.push(c)
         return p
