@@ -23,5 +23,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/envman/vetus"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0"
   }
 }
