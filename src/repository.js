@@ -216,6 +216,10 @@ module.exports = function (path) {
     gitExecute('fetch', callback)
   }
 
+  const currentCommit = (callback) => {
+    gitExecute('rev-parse HEAD', callback)
+  }
+
   return {
     commit: commit,
     jsonLog: jsonLog,
@@ -240,6 +244,7 @@ module.exports = function (path) {
     fetch: fetch,
     deleteBranch: deleteBranch,
     execute: execute,
-    isNew: isNew
+    isNew: isNew,
+    currentCommit: currentCommit
   }
 }

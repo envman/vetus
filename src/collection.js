@@ -24,27 +24,30 @@ module.exports = function(options) {
 
   let load = function (callback) {
     preCommand(function (branchExists) {
-      fs.readdir(userroot, (err, list) => {
-        let proms = list.filter(f => f != '.git').map(f => new Promise((resolve, reject) => {
-          fs.readFile(path.join(userroot, f), (err, file) => {
-            if (err || !file) {
-              console.log('PreCommand error:', err)
-              return reject(err)
-            }
+      repo.currentCommit(commit => {
+        fs.readdir(userroot, (err, list) => {
+          let proms = list.filter(f => f != '.git').map(f => new Promise((resolve, reject) => {
+            fs.readFile(path.join(userroot, f), (err, file) => {
+              if (err || !file) {
+                console.log('PreCommand error:', err)
+                return reject(err)
+              }
 
-            resolve({ name: f.replace('.json', ''), object: JSON.parse(file) })
-          })
-        }))
+              resolve({ name: f.replace('.json', ''), object: JSON.parse(file) })
+            })
+          }))
 
-        Promise.all(proms).then(files => {
-          let data = {}
-          files.map(f => {
-            data[f.name] = f.object
-          })
+          Promise.all(proms).then(files => {
+            let data = {}
+            files.map(f => {
+              data[f.name] = f.object
+            })
 
-          collection.data = data
-          callback()
-        }).catch(err => callback(null, err))
+            collection.commit = commit
+            collection.data = data
+            callback()
+          }).catch(err => callback(null, err))
+        })
       })
     })
   }

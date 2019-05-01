@@ -10,6 +10,7 @@ const framework = new require('./test-framework')
 describe('Updating a collection', function() {
 
   let testData
+  let commit
 
   before(function(done) {
     if (fs.existsSync(testDirectory)) {
@@ -31,7 +32,10 @@ describe('Updating a collection', function() {
       .then(c => framework.load(c))
       .then(c => framework.save(c, updated))
       .then(c => framework.load(c))
-      .then(c => testData = c.data)
+      .then(c => {
+        testData = c.data
+        commit = c.commit
+      })
       .then(c => done())
   })
 
@@ -41,6 +45,7 @@ describe('Updating a collection', function() {
 
   it('File updated & committed correctly', function(done) {
     assert(testData.first.name === 'updated')
+    assert(commit.length > 0)
     done()
   })
 })
