@@ -220,31 +220,51 @@ module.exports = function (path) {
     gitExecute('rev-parse HEAD', callback)
   }
 
+  const tag = (tagName, callback) => {
+    gitExecute(`commit --allow-empty -m "Commit for tag ${tagName}"`, () => {
+      gitExecute(`tag ${tagName}`, (_, err) => {
+        if (err) return callback(false)
+
+        return callback(true)
+      })
+    })
+  }
+
+  const getLatestTag = callback => {
+    gitExecute('describe --tags --abbrev=0', (result, err) => {
+      if (err) return callback(undefined)
+
+      return callback((result || '').trim() || undefined)
+    })
+  }
+
   return {
-    commit: commit,
-    jsonLog: jsonLog,
-    log: log,
-    init: init,
-    pull: pull,
-    push: push,
-    addAll: addAll,
-    clone: clone,
-    initBare: initBare,
-    config: config,
-    reset: reset,
-    checkout: checkout,
-    branch: branch,
-    clean: clean,
-    status: status,
-    branchExists: branchExists,
-    merge: merge,
-    mergeTheirs: mergeTheirs,
-    mergeBase: mergeBase,
-    branchList: branchList,
-    fetch: fetch,
-    deleteBranch: deleteBranch,
-    execute: execute,
-    isNew: isNew,
-    currentCommit: currentCommit
+    commit,
+    jsonLog,
+    log,
+    init,
+    pull,
+    push,
+    addAll,
+    clone,
+    initBare,
+    config,
+    reset,
+    checkout,
+    branch,
+    clean,
+    status,
+    branchExists,
+    merge,
+    mergeTheirs,
+    mergeBase,
+    branchList,
+    fetch,
+    deleteBranch,
+    execute,
+    isNew,
+    currentCommit,
+    tag,
+    getLatestTag
   }
 }

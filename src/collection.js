@@ -3,10 +3,6 @@ const Repository = require('./repository')
 const fs = require('fs')
 const Promise = require('promise')
 const mkdirp = require('mkdirp')
-const rimraf = require('rimraf')
-
-const write = Promise.denodeify(fs.writeFile)
-const read = Promise.denodeify(fs.readFile)
 
 module.exports = function(options) {
   let root = options.path
@@ -332,17 +328,63 @@ module.exports = function(options) {
       }, [])
   }
 
-  let collection = {
-    data: data,
-    load: load,
-    save: save,
-    createBranch: createBranch,
-    changeBranch: changeBranch,
-    merge: merge,
-    mergeTheirs: mergeTheirs,
-    branchList: branchList,
-    deleteBranch: deleteBranch,
-    log: branchLog
+  const getVersion = callback => {
+    preCommand(() => {
+      repo.getLatestTag(tag => {
+        if (!tag) return callback(undefined)
+
+        const v = tag.match('v_(.*)_')
+        if (!v || !v.length) return callback(undefined)
+
+        const [major, minor] = v[1].split(/\./).map(Number)
+        callback({ major, minor })
+      })
+    })
+  }
+
+  const newVersion = (version, callback) => {
+    const { major, minor } = version
+    if ([major, minor].some(v => isNaN(Number(v)))) {
+      return callback(false)
+    }
+
+    repo.tag(`v_${major}.${minor}_`, ok => callback(ok && version))
+  }
+
+  const versionBump = (type, callback) => {
+    if (!['major', 'minor'].includes(type)) {
+      return callback(false)
+    }
+
+    getVersion(version => {
+      if (!version) {
+        version = { major: 1, minor: 0 }
+      } else {
+        if (type === 'major') {
+          version.major += 1
+          version.minor = 0
+        } else if (type === 'minor') {
+          version.minor += 1
+        }
+      }
+
+      newVersion(version, callback)
+    })
+  }
+
+  const collection = {
+    data,
+    load,
+    save,
+    createBranch,
+    changeBranch,
+    merge,
+    mergeTheirs,
+    branchList,
+    deleteBranch,
+    log: branchLog,
+    versionBump,
+    getVersion
   }
 
   return collection
