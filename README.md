@@ -103,3 +103,13 @@ about this until search is implemented. This could just be a seperate vetus path
 - Jamie Mahoney (https://github.com/mahoneyj2)
 - Isak Falk (https://github.com/IsakFalk)
 - Robert Gill (https://github.com/envman)
+
+---
+
+## Changelog
+
+### `0.5.1`
+- Added collection `allVersions()` function
+
+### `0.5.0`
+- Versioning support using git tags

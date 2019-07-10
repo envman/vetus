@@ -238,6 +238,19 @@ module.exports = function (path) {
     })
   }
 
+  const getTags = (filter = '', callback) => {
+    gitExecute(`tag -l${filter ? ` "${filter}"` : ''}`, (result, err) => {
+      if (err) return callback([])
+
+      const tags = result
+        .trim()
+        .split('\n')
+        .map(t => t.trim())
+
+      return callback(tags)
+    })
+  }
+
   return {
     commit,
     jsonLog,
@@ -265,6 +278,7 @@ module.exports = function (path) {
     isNew,
     currentCommit,
     tag,
-    getLatestTag
+    getLatestTag,
+    getTags
   }
 }
