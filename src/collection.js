@@ -351,7 +351,7 @@ module.exports = function(options) {
           .map(t => t.match(/v_(.*)_/))
           .filter(t => t)
           .map(t => t[1].split(/\./).map(Number))
-          .map(t => ({ major: t[0], minor: t[1] }))
+          .map(([major, minor]) => ({major, minor}))
 
         return callback(versions)
       })
