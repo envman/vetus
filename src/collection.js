@@ -333,11 +333,27 @@ module.exports = function(options) {
       repo.getLatestTag(tag => {
         if (!tag) return callback(undefined)
 
-        const v = tag.match('v_(.*)_')
+        const v = tag.match(/v_(.*)_/)
         if (!v || !v.length) return callback(undefined)
 
         const [major, minor] = v[1].split(/\./).map(Number)
         callback({ major, minor })
+      })
+    })
+  }
+
+  const allVersions = callback => {
+    preCommand(() => {
+      repo.getTags('v_*_', tags => {
+        if (!tags) return callback(undefined)
+
+        const versions = tags
+          .map(t => t.match(/v_(.*)_/))
+          .filter(t => t)
+          .map(t => t[1].split(/\./).map(Number))
+          .map(([major, minor]) => ({major, minor}))
+
+        return callback(versions)
       })
     })
   }
@@ -384,7 +400,8 @@ module.exports = function(options) {
     deleteBranch,
     log: branchLog,
     versionBump,
-    getVersion
+    getVersion,
+    allVersions
   }
 
   return collection
