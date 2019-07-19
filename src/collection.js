@@ -330,7 +330,7 @@ module.exports = function(options) {
 
   const getVersion = callback => {
     preCommand(() => {
-      repo.getLatestTag(tag => {
+      barerepo.getLatestTag(tag => {
         if (!tag) return callback(undefined)
 
         const v = tag.match(/v_(.*)_/)
@@ -344,7 +344,7 @@ module.exports = function(options) {
 
   const allVersions = callback => {
     preCommand(() => {
-      repo.getTags('v_*_', tags => {
+      barerepo.getTags('v_*_', tags => {
         if (!tags) return callback(undefined)
 
         const versions = tags
@@ -364,7 +364,12 @@ module.exports = function(options) {
       return callback(false)
     }
 
-    repo.tag(`v_${major}.${minor}_`, ok => callback(ok && version))
+    const newTag = `v_${major}.${minor}_`
+    repo.preTagCommit(branch, newTag, () => {
+      barerepo.tag(newTag, ok => {
+        return callback(ok && version)
+      })
+    })
   }
 
   const versionBump = (type, callback) => {

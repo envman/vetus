@@ -220,13 +220,17 @@ module.exports = function (path) {
     gitExecute('rev-parse HEAD', callback)
   }
 
-  const tag = (tagName, callback) => {
+  const preTagCommit = (branch, tagName, callback) => {
     gitExecute(`commit --allow-empty -m "Commit for tag ${tagName}"`, () => {
-      gitExecute(`tag ${tagName}`, (_, err) => {
-        if (err) return callback(false)
+      push(`origin ${branch}`, (_, err) => callback(!err))
+    })
+  }
 
-        return callback(true)
-      })
+  const tag = (tagName, callback) => {
+    gitExecute(`tag ${tagName}`, (_, err) => {
+      if (err) return callback(false)
+
+      return callback(true)
     })
   }
 
@@ -277,6 +281,7 @@ module.exports = function (path) {
     execute,
     isNew,
     currentCommit,
+    preTagCommit,
     tag,
     getLatestTag,
     getTags
