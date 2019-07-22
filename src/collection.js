@@ -329,32 +329,28 @@ module.exports = function(options) {
   }
 
   const getVersion = callback => {
-    preCommand(() => {
-      repo.getLatestTag(tag => {
-        if (!tag) return callback(undefined)
+    barerepo.getLatestTag(branch, tag => {
+      if (!tag) return callback(undefined)
 
-        const v = tag.match(/v_(.*)_/)
-        if (!v || !v.length) return callback(undefined)
+      const v = tag.match(/v_(.*)_/)
+      if (!v || !v.length) return callback(undefined)
 
-        const [major, minor] = v[1].split(/\./).map(Number)
-        callback({ major, minor })
-      })
+      const [major, minor] = v[1].split(/\./).map(Number)
+      callback({ major, minor })
     })
   }
 
   const allVersions = callback => {
-    preCommand(() => {
-      repo.getTags('v_*_', tags => {
-        if (!tags) return callback(undefined)
+    barerepo.getTags('v_*_', tags => {
+      if (!tags) return callback(undefined)
 
-        const versions = tags
-          .map(t => t.match(/v_(.*)_/))
-          .filter(t => t)
-          .map(t => t[1].split(/\./).map(Number))
-          .map(([major, minor]) => ({major, minor}))
+      const versions = tags
+        .map(t => t.match(/v_(.*)_/))
+        .filter(t => t)
+        .map(t => t[1].split(/\./).map(Number))
+        .map(([major, minor]) => ({major, minor}))
 
-        return callback(versions)
-      })
+      return callback(versions)
     })
   }
 
@@ -364,7 +360,14 @@ module.exports = function(options) {
       return callback(false)
     }
 
-    repo.tag(`v_${major}.${minor}_`, ok => callback(ok && version))
+    const newTag = `v_${major}.${minor}_`
+    preCommand(() => {
+      repo.preTagCommit(branch, newTag, targetCommit => {
+        barerepo.tag(newTag, targetCommit, ok => {
+          return callback(ok && version)
+        })
+      })
+    })
   }
 
   const versionBump = (type, callback) => {
