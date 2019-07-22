@@ -108,8 +108,11 @@ about this until search is implemented. This could just be a seperate vetus path
 
 ## Changelog
 
+### `0.5.2`
+- Collection versions tag against base repo, not user repo #45
+
 ### `0.5.1`
-- Added collection `allVersions()` function
+- Added collection `allVersions()` function #44
 
 ### `0.5.0`
-- Versioning support using git tags
+- Versioning support using git tags #43
