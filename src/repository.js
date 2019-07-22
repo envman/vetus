@@ -222,20 +222,23 @@ module.exports = function (path) {
 
   const preTagCommit = (branch, tagName, callback) => {
     gitExecute(`commit --allow-empty -m "Commit for tag ${tagName}"`, () => {
-      push(`origin ${branch}`, (_, err) => callback(!err))
+      push(`origin HEAD:${branch}`, (_, err) => {
+        if (err) return callback(undefined)
+        currentCommit(result => callback((result || '').trim() || undefined))
+      })
     })
   }
 
-  const tag = (tagName, callback) => {
-    gitExecute(`tag ${tagName}`, (_, err) => {
+  const tag = (tagName, targetCommit, callback) => {
+    gitExecute(`tag ${tagName} ${targetCommit}`, (_, err) => {
       if (err) return callback(false)
 
       return callback(true)
     })
   }
 
-  const getLatestTag = callback => {
-    gitExecute('describe --tags --abbrev=0', (result, err) => {
+  const getLatestTag = (branch, callback) => {
+    gitExecute(`describe --tags --abbrev=0 ${branch}`, (result, err) => {
       if (err) return callback(undefined)
 
       return callback((result || '').trim() || undefined)
