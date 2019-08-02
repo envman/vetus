@@ -164,6 +164,18 @@ module.exports = function(options) {
     })
   }
 
+  const loadVersion = (ref, callback) => {
+    repo.tagExists(ref, exists => {
+      if (exists) {
+        repo.checkout(ref, () => {
+          callback(true)
+        })
+      } else {
+        callback(false)
+      }
+    })
+  }
+
   let checkBareGit = function(callback) {
     baregitExists(bareroot, function(bareExists) {
       if (!bareExists) {
@@ -285,7 +297,7 @@ module.exports = function(options) {
                           pull(callback)
                       })
                   } else {
-                      return callback(exists)
+                    loadVersion(branch, e => callback(e))
                   }
                 })
               }
@@ -397,6 +409,7 @@ module.exports = function(options) {
     save,
     createBranch,
     changeBranch,
+    loadVersion,
     merge,
     mergeTheirs,
     branchList,

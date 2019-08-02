@@ -162,8 +162,8 @@ module.exports = function (path) {
     gitExecute('reset -- ' + type, callback)
   }
 
-  const checkout = function (branch, callback) {
-    gitExecute('checkout ' + branch, callback)
+  const checkout = function (ref, callback) {
+    gitExecute('checkout ' + ref, callback)
   }
 
   const branch = function (branch, callback) {
@@ -258,6 +258,12 @@ module.exports = function (path) {
     })
   }
 
+  const tagExists = (tag, callback) => {
+    getTags('', tags => {
+      callback(tags.indexOf(tag) > -1)
+    })
+  }
+
   return {
     commit,
     jsonLog,
@@ -287,6 +293,7 @@ module.exports = function (path) {
     preTagCommit,
     tag,
     getLatestTag,
-    getTags
+    getTags,
+    tagExists
   }
 }
