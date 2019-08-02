@@ -108,6 +108,9 @@ about this until search is implemented. This could just be a seperate vetus path
 
 ## Changelog
 
+### `0.5.3`
+- Load collection version by tag #46
+
 ### `0.5.2`
 - Collection versions tag against base repo, not user repo #45
 
