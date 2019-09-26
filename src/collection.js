@@ -29,7 +29,13 @@ module.exports = function(options) {
                 return reject(err)
               }
 
-              resolve({ name: f.replace('.json', ''), object: JSON.parse(file) })
+              try {
+                const object = JSON.parse(file)
+                resolve({ name: f.replace('.json', ''), object })
+              } catch (err) {
+                console.error(`Error Loading ${userroot}/${f}`)
+                reject(err)
+              }
             })
           }))
 
