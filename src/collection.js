@@ -33,7 +33,7 @@ module.exports = function(options) {
                 const object = JSON.parse(file)
                 resolve({ name: f.replace('.json', ''), object })
               } catch (err) {
-                console.error(`Error Loading ${userroot}/${f}`)
+                console.error(`Error Loading ${userroot}/${f} on branch ${branch}`)
                 reject(err)
               }
             })
