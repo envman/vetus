@@ -407,7 +407,6 @@ module.exports = function(options) {
   const collection = {
     data,
     load,
-    loadLinks,
     save,
     createBranch,
     changeBranch,
