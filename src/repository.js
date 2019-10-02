@@ -182,6 +182,29 @@ module.exports = function (path) {
     gitExecute('merge ' + branch, callback)
   }
 
+  const show = (branch, file) => {
+    // console.log(`show ${branch} ${file}`)
+    return execute(`show ${branch}:${file}`)
+  }
+
+  const lstree = branch => {
+    // console.log(`lstree ${branch}`)
+
+    return execute(`ls-tree ${branch}`)
+      .then(data => {
+        // console.log('lstree fin', data)
+
+        const parts = data.split('\t')
+        parts.shift()
+
+        return parts.map(x => x.split('\n').shift())
+      })
+  }
+
+  const lastestCommit = branch => {
+    return execute(`rev-parse ${branch}`)
+  }
+
   const mergeTheirs = function (branch, callback) {
     gitExecute('merge -X theirs ' + branch, callback)
   }
@@ -223,8 +246,15 @@ module.exports = function (path) {
   const preTagCommit = (branch, tagName, callback) => {
     gitExecute(`commit --allow-empty -m "Commit for tag ${tagName}"`, () => {
       push(`origin HEAD:${branch}`, (_, err) => {
-        if (err) return callback(undefined)
-        currentCommit(result => callback((result || '').trim() || undefined))
+        if (err) return callback(undefined, err)
+
+        currentCommit((result, err) => {
+          if (err) {
+            return callback(undefined, err)
+          }
+
+          callback((result || '').trim() || undefined)
+        })
       })
     })
   }
@@ -294,6 +324,9 @@ module.exports = function (path) {
     tag,
     getLatestTag,
     getTags,
-    tagExists
+    tagExists,
+    show,
+    lstree,
+    lastestCommit
   }
 }

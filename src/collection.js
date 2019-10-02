@@ -1,8 +1,11 @@
 const path = require('path')
 const Repository = require('./repository')
 const fs = require('fs')
+const util = require('util')
 const Promise = require('promise')
 const mkdirp = require('mkdirp')
+
+const access = util.promisify(fs.access)
 
 module.exports = function(options) {
   let root = options.path
@@ -19,39 +22,27 @@ module.exports = function(options) {
   let data = {}
 
   let load = function (callback) {
-    preCommand(function (branchExists) {
-      repo.currentCommit(commit => {
-        fs.readdir(userroot, (err, list) => {
-          let proms = list.filter(f => f != '.git').map(f => new Promise((resolve, reject) => {
-            fs.readFile(path.join(userroot, f), (err, file) => {
-              if (err || !file) {
-                console.log('PreCommand error:', err)
-                return reject(err)
-              }
+    barerepo.lstree(branch)
+      .then(files => files.map(f => barerepo.show(branch, f).then(data => ({ name: f.replace('.json', ''), object: JSON.parse(data) }))))
+      .then(promises => Promise.all(promises))
+      .then(files => {
+          let data = {}
+          files.map(f => {
+            data[f.name] = f.object
+          })
 
-              try {
-                const object = JSON.parse(file)
-                resolve({ name: f.replace('.json', ''), object })
-              } catch (err) {
-                console.error(`Error Loading ${userroot}/${f}`)
-                reject(err)
-              }
+          collection.data = data
+
+          return barerepo.lastestCommit(branch)
+            .then(commit => {
+                collection.commit = commit
+                callback()
             })
-          }))
-
-          Promise.all(proms).then(files => {
-            let data = {}
-            files.map(f => {
-              data[f.name] = f.object
-            })
-
-            collection.commit = commit
-            collection.data = data
-            callback()
-          }).catch(err => callback(null, err))
-        })
       })
-    })
+      .catch(err => {
+        console.error(err)
+        callback(undefined, err)
+      })
   }
 
   let save = function (message, callback) {
@@ -380,7 +371,11 @@ module.exports = function(options) {
 
     const newTag = `v_${major}.${minor}_`
     preCommand(() => {
-      repo.preTagCommit(branch, newTag, targetCommit => {
+      repo.preTagCommit(branch, newTag, (targetCommit, err) => {
+        if (err) {
+          return callback(undefined, err)
+        }
+
         barerepo.tag(newTag, targetCommit, ok => {
           return callback(ok && version)
         })
@@ -412,6 +407,7 @@ module.exports = function(options) {
   const collection = {
     data,
     load,
+    loadLinks,
     save,
     createBranch,
     changeBranch,
