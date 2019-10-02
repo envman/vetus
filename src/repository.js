@@ -5,14 +5,24 @@ const paths = require('path')
 const fs = require('fs')
 
 module.exports = function (path) {
-  const execute = function (command) {
-    return new Promise((resolve, reject) => {
-      gitExecute(command, (result, err) => {
-        if (err) {
-          return reject(err)
-        }
 
-        resolve(result)
+  const execute = function (command, opts) {
+    opts = opts || {}
+    opts.cwd = path
+
+    command = 'git ' + command
+
+    return new Promise((resolve, reject) => {
+      exec(command, opts, function (error, result) {
+        if (error && !error.toString().includes(`Couldn't find remote ref master`)) {
+          console.log('Error with command -', command)
+          console.log('In Path', path)
+          console.log(error)
+
+          reject(error)
+        } else {
+          resolve(result)
+        }
       })
     })
   }
@@ -183,7 +193,7 @@ module.exports = function (path) {
   }
 
   const show = (branch, file) => {
-    return execute(`show ${branch}:${file}`)
+    return execute(`show ${branch}:${file}`, { maxBuffer: 1024 * 1000 })
   }
 
   const lstree = branch => {
