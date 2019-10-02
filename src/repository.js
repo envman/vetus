@@ -183,17 +183,12 @@ module.exports = function (path) {
   }
 
   const show = (branch, file) => {
-    // console.log(`show ${branch} ${file}`)
     return execute(`show ${branch}:${file}`)
   }
 
   const lstree = branch => {
-    // console.log(`lstree ${branch}`)
-
     return execute(`ls-tree ${branch}`)
       .then(data => {
-        // console.log('lstree fin', data)
-
         const parts = data.split('\t')
         parts.shift()
 
