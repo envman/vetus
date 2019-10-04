@@ -193,7 +193,7 @@ module.exports = function (path) {
   }
 
   const show = (branch, file) => {
-    return execute(`show ${branch}:${file}`, { maxBuffer: 1024 * 1000 })
+    return execute(`show ${branch}:${file}`, { maxBuffer: 1024 * 1024 * 100 })
   }
 
   const lstree = branch => {
