@@ -21,8 +21,21 @@ module.exports = function(options) {
 
   let data = {}
 
-  let load = function (callback) {
-    barerepo.lstree(branch)
+  let load = function (file, callback) {
+    if (!callback) {
+      callback = file
+      file = undefined
+    }
+
+    const fileList = () => {
+      if (file) {
+        return Promise.resolve([`${file}.json`])
+      }
+
+      return barerepo.lstree(branch)
+    }
+
+    fileList()
       .then(files => files.map(f => barerepo.show(branch, f).then(data => ({ name: f.replace('.json', ''), object: JSON.parse(data) }))))
       .then(promises => Promise.all(promises))
       .then(files => {
@@ -40,9 +53,46 @@ module.exports = function(options) {
             })
       })
       .catch(err => {
+        console.error(`Error in ${root} ${user} ${branch}`)
         console.error(err)
         callback(undefined, err)
       })
+  }
+
+  let localLoad = function (callback) {
+    preCommand(function (branchExists) {
+      repo.currentCommit(commit => {
+        fs.readdir(userroot, (err, list) => {
+          let proms = list.filter(f => f != '.git').map(f => new Promise((resolve, reject) => {
+            fs.readFile(path.join(userroot, f), (err, file) => {
+              if (err || !file) {
+                console.log('PreCommand error:', err)
+                return reject(err)
+              }
+
+              try {
+                const object = JSON.parse(file)
+                resolve({ name: f.replace('.json', ''), object })
+              } catch (err) {
+                console.error(`Error Loading ${userroot}/${f}`)
+                reject(err)
+              }
+            })
+          }))
+
+          Promise.all(proms).then(files => {
+            let data = {}
+            files.map(f => {
+              data[f.name] = f.object
+            })
+
+            collection.commit = commit
+            collection.data = data
+            callback()
+          }).catch(err => callback(null, err))
+        })
+      })
+    })
   }
 
   let save = function (message, callback) {
@@ -407,6 +457,7 @@ module.exports = function(options) {
   const collection = {
     data,
     load,
+    localLoad,
     save,
     createBranch,
     changeBranch,
