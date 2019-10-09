@@ -415,6 +415,7 @@ module.exports = function(options) {
 
   const newVersion = (version, callback) => {
     const { major, minor } = version
+
     if ([major, minor].some(v => isNaN(Number(v)))) {
       return callback(false)
     }
@@ -453,6 +454,21 @@ module.exports = function(options) {
       newVersion(version, callback)
     })
   }
+ 
+  const createTag = (version, callback) => {
+    const newTag = `v_${version}_`
+    preCommand(() => {
+      repo.preTagCommit(branch, newTag, (targetCommit, err) => {
+        if (err) {
+          return callback(undefined, err)
+        }
+
+        barerepo.tag(newTag, targetCommit, ok => {
+          return callback(ok && version)
+        })
+      })
+    })
+  }
 
   const collection = {
     data,
@@ -469,6 +485,7 @@ module.exports = function(options) {
     log: branchLog,
     versionBump,
     getVersion,
+    createTag,
     allVersions
   }
 
