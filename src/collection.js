@@ -485,6 +485,7 @@ module.exports = function(options) {
     log: branchLog,
     versionBump,
     getVersion,
+    createTag,
     allVersions
   }
 
