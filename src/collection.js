@@ -415,6 +415,7 @@ module.exports = function(options) {
 
   const newVersion = (version, callback) => {
     const { major, minor } = version
+
     if ([major, minor].some(v => isNaN(Number(v)))) {
       return callback(false)
     }
@@ -433,15 +434,29 @@ module.exports = function(options) {
     })
   }
 
-  const versionBump = (version, callback) => {
-    const formatVersion = version.split('.')
-    const [major, minor] = [formatVersion[0], formatVersion[1]]
-
-    if ([major, minor].some(v => isNaN(Number(v)))) {
+  const versionBump = (type, callback) => {
+    if (!['major', 'minor'].includes(type)) {
       return callback(false)
     }
 
-    const newTag = `v_${major}.${minor}_`
+    getVersion(version => {
+      if (!version) {
+        version = { major: 1, minor: 0 }
+      } else {
+        if (type === 'major') {
+          version.major += 1
+          version.minor = 0
+        } else if (type === 'minor') {
+          version.minor += 1
+        }
+      }
+
+      newVersion(version, callback)
+    })
+  }
+ 
+  const createTag = (version, callback) => {
+    const newTag = `v_${version}_`
     preCommand(() => {
       repo.preTagCommit(branch, newTag, (targetCommit, err) => {
         if (err) {
