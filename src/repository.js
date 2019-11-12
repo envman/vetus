@@ -58,7 +58,7 @@ module.exports = function (path) {
       logOptions = {}
     }
 
-    let gitCall = `--pretty=format:"{ *commit*: *%H*, *author*: *%an <%ae>*, *date*: *%ad*, *message*: *%s*},"`
+    let gitCall = `--pretty=format:"{ **commit**: **%H**, **author**: **%an <%ae>**, **date**: **%ad**, **message**: **%s**},"`
 
     if (logOptions.branch) {
       gitCall += ` ${logOptions.branch}`
@@ -96,7 +96,7 @@ module.exports = function (path) {
 
   const jsonFormat = function (data, callback) {
     // replace *'s with "'s
-    let quoted = data.split('*').join('"')
+    let quoted = data.split('**').join('"')
 
     // remove trailing ,
     let commaRemoved = quoted.slice(0, -1)
