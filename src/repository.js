@@ -58,7 +58,7 @@ module.exports = function (path) {
       logOptions = {}
     }
 
-    let gitCall = `--pretty=format:"{ **commit**: **%H**, **author**: **%an <%ae>**, **date**: **%ad**, **message**: **%s**},"`
+    let gitCall = `--pretty=format:"{ **commit**: **%H**, **author**: **%an <%ae>**, **date**: **%ad**, **message**: **%s **},"`
 
     if (logOptions.branch) {
       gitCall += ` ${logOptions.branch}`
