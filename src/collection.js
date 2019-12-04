@@ -95,39 +95,38 @@ module.exports = function(options) {
     })
   }
 
-  let save = function (message, callback) {
-    let promise = []
-    fs.readdir(userroot, (err, files) => {
-      if (files) {
-        promise = files.filter(file => file.endsWith('.json')).map(f => new Promise((done, fail) => {
-          fs.unlink(path.join(userroot, f), () => {
-            done()
-          })
-        }))
-      }
+  let save = function(message, callback) {
+    preCommandAlt(function() {
+      let promise = []
 
-      Promise.all(promise).then(() => {
-        preCommandAlt(function() {
-          let proms = Object.getOwnPropertyNames(collection.data).map(f => new Promise((done, fail) => {
-            fs.writeFile(path.join(userroot, `${f}.json`), JSON.stringify(collection.data[f], null, 2), () => {
+      fs.readdir(userroot, (err, files) => {
+        if (files) {
+          promise = files.filter(file => file.endsWith('.json')).map(f => new Promise((done, fail) => {
+            fs.unlink(path.join(userroot, f), () => {
               done()
             })
           }))
+        }
 
-          Promise.all(proms).then(() => {
-            addAndCommit(message, function (committed) {
-              if (committed) {
-                pull(function(result, error) {
-                  if (!error) {
-                    repo.push(`origin ${branch}`, callback)
-                  } else {
-                    callback()
-                  }
-                })
-              } else {
-                callback()
-              }
-            })
+        promise.push(...Object.getOwnPropertyNames(collection.data).map(f => new Promise((done, fail) => {
+          fs.writeFile(path.join(userroot, `${f}.json`), JSON.stringify(collection.data[f], null, 2), () => {
+            done()
+          })
+        })))
+
+        Promise.all(promise).then(() => {
+          addAndCommit(message, function(committed) {
+            if (committed) {
+              pull(function(result, error) {
+                if (!error) {
+                  repo.push(`origin ${branch}`, callback)
+                } else {
+                  callback()
+                }
+              })
+            } else {
+              callback()
+            }
           })
         })
       })
@@ -454,7 +453,7 @@ module.exports = function(options) {
       newVersion(version, callback)
     })
   }
- 
+
   const createTag = (version, callback) => {
     const newTag = `v_${version}_`
     preCommand(() => {
