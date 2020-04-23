@@ -13,13 +13,17 @@ module.exports = function (path) {
     command = 'git ' + command
 
     return new Promise((resolve, reject) => {
+      console.log('execute - ', command)
       exec(command, opts, function (error, result) {
         if (error && !error.toString().includes(`Couldn't find remote ref master`)) {
           console.log('Error with command -', command)
           console.log('In Path', path)
           console.log(error)
 
-          reject(error)
+          if (!error.toString().includes(`Couldn't find remote ref master`)) {
+            reject(error)
+          }
+
         } else {
           resolve(result)
         }
@@ -30,13 +34,17 @@ module.exports = function (path) {
   const gitExecute = function (command, callback) {
     command = 'git ' + command
 
+    console.log('execute - ', command)
+
     exec(command, {cwd: path}, function (error, result) {
-      if (error && !error.toString().includes(`Couldn't find remote ref master`)) {
+      if (error) {
         console.log('Error with command -', command)
         console.log('In Path', path)
         console.log(error)
 
-        callback(null, error)
+        if (!error.toString().includes(`Couldn't find remote ref master`)) {
+          callback(null, error)
+        }
       }
       else {
         callback(result)
@@ -273,9 +281,14 @@ module.exports = function (path) {
   }
 
   const getLatestTag = (branch, callback) => {
-    gitExecute(`describe --tags --abbrev=0 ${branch}`, (result, err) => {
-      if (err) return callback(undefined)
+    gitExecute(`describe --tags --always --abbrev=0 ${branch}`, (result, err) => {
+      if (err) {
+        console.error(`Failed to get Latest Tag for branch: ${branch}`)
 
+        return callback(null, err)
+      }
+
+      console.log('retrieved latest tag', branch)
       return callback((result || '').trim() || undefined)
     })
   }
