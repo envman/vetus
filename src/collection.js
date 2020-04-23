@@ -137,7 +137,12 @@ module.exports = function(options) {
     preCommand(function() {
       repo.merge(fromBranch, function(output, err) {
         if (err) {
-          repo.merge("--abort", function() {
+          repo.merge("--abort", function(_, abortErr) {
+            if (abortErr) {
+              console.error('Failed to abort merge')
+              console.error(abortErr)
+              return callback(null, abortErr)
+            }
             console.log("Merge conflict : ", err)
             return callback(null, err)
           })
@@ -154,9 +159,14 @@ module.exports = function(options) {
     preCommand(function() {
       repo.mergeTheirs(fromBranch, function(output, err) {
         if (err) {
-          repo.mergeTheirs(" --abort", function() {
-            console.log("Merge conflict : ", output)
-            return callback(err)
+          repo.mergeTheirs("--abort", function(_, abortErr) {
+            if (abortErr) {
+              console.error('Failed to abort merge')
+              console.error(abortErr)
+              return callback(null, abortErr)
+            }
+            console.log("Merge conflict : ", err)
+            return callback(null, err)
           })
         } else {
           repo.push('', () => {
@@ -387,8 +397,8 @@ module.exports = function(options) {
   }
 
   const getVersion = callback => {
-    barerepo.getLatestTag(branch, tag => {
-      if (!tag) return callback(undefined)
+    barerepo.getLatestTag(branch, (tag, err) => {
+      if (!tag) return callback(null, err)
 
       const v = tag.match(/v_(.*)_/)
       if (!v || !v.length) return callback(undefined)
@@ -400,8 +410,6 @@ module.exports = function(options) {
 
   const allVersions = callback => {
     barerepo.getTags('v_*_', tags => {
-      if (!tags) return callback(undefined)
-
       const versions = tags
         .map(t => t.match(/v_(.*)_/))
         .filter(t => t)
