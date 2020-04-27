@@ -15,18 +15,19 @@ module.exports = function (path) {
     return new Promise((resolve, reject) => {
       console.log('execute - ', command)
       exec(command, opts, function (error, result) {
-        if (error && !error.toString().includes(`Couldn't find remote ref master`)) {
-          console.log('Error with command -', command)
-          console.log('In Path', path)
-          console.log(error)
-
-          if (!error.toString().includes(`Couldn't find remote ref master`)) {
-            reject(error)
-          }
-
-        } else {
-          resolve(result)
+        if (!error) {
+          return resolve(result)
         }
+
+        console.log('Error with command -', command)
+        console.log('In Path', path)
+        console.log(error)
+
+        if (!error.toString().includes(`Couldn't find remote ref master`)) {
+          return reject(error)
+        }
+
+        resolve(result)
       })
     })
   }
@@ -37,18 +38,19 @@ module.exports = function (path) {
     console.log('execute - ', command)
 
     exec(command, {cwd: path}, function (error, result) {
-      if (error) {
-        console.log('Error with command -', command)
-        console.log('In Path', path)
-        console.log(error)
+      if (!error) {
+        return callback(result)
+      }
 
-        if (!error.toString().includes(`Couldn't find remote ref master`)) {
-          callback(null, error)
-        }
+      console.log('Error with command -', command)
+      console.log('In Path', path)
+      console.log(error)
+
+      if (!error.toString().includes(`Couldn't find remote ref master`)) {
+        return callback(null, error)
       }
-      else {
-        callback(result)
-      }
+
+      callback(result)
     })
   }
 
