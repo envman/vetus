@@ -108,6 +108,9 @@ about this until search is implemented. This could just be a seperate vetus path
 
 ## Changelog
 
+### `0.8.1`
+- Fix command callback getting stuck
+
 ### `0.8.0`
 - Add command logs and error callback
 
