@@ -314,6 +314,28 @@ module.exports = function (path) {
     })
   }
 
+  const revertHard = callback => {
+    gitExecute(`reset --hard HEAD~1`, (result, err) => {
+      if (err) {
+        console.error(`Failed to revert commit`)
+
+        return callback(null, err)
+      }
+
+      push(`-f`, (_, err) => {
+        if (err) return callback(null, err)
+
+        currentCommit((result, err) => {
+          if (err) {
+            return callback(null, err)
+          }
+
+          callback((result || '').trim() || null)
+        })
+      })
+    })
+  }
+
   return {
     commit,
     jsonLog,
@@ -347,6 +369,7 @@ module.exports = function (path) {
     tagExists,
     show,
     lstree,
-    lastestCommit
+    lastestCommit,
+    revertHard
   }
 }

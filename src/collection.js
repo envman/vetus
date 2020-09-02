@@ -477,6 +477,10 @@ module.exports = function(options) {
     })
   }
 
+  const revertHard = callback => {
+    repo.revertHard(callback)
+  }
+
   const collection = {
     data,
     load,
@@ -493,7 +497,8 @@ module.exports = function(options) {
     versionBump,
     getVersion,
     createTag,
-    allVersions
+    allVersions,
+    revertHard
   }
 
   return collection
