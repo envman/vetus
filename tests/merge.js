@@ -32,9 +32,9 @@ describe('(Basic) Merging', function() {
       .then(() => done())
   })
 
-  // after(function() {
-  //   rimraf(testDirectory)
-  // })
+  after(function() {
+    rimraf(testDirectory)
+  })
 
   it('Dev and Master merged successfully', function(done) {
     assert(masterData.first.name === 'updated')
