@@ -108,6 +108,9 @@ about this until search is implemented. This could just be a seperate vetus path
 
 ## Changelog
 
+### `0.9.0`
+- Add Revert Hard command
+
 ### `0.8.1`
 - Fix command callback getting stuck
 

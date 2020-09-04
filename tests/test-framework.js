@@ -87,3 +87,10 @@ module.exports.deleteBranch = function(collection, branchToDelete) {
     })
   })
 }
+
+module.exports.revertHard = collection => new Promise((resolve, reject) => {
+  collection.revertHard((result, err) => {
+    if (err) return reject(err)
+    resolve(collection)
+  })
+})
